@@ -236,14 +236,6 @@ export default function FHEPipelineViz() {
           ctx.arc(screenX, screenY, projectedSize, 0, Math.PI * 2);
           ctx.fillStyle = colorStr;
           ctx.fill();
-
-          // Soft bloom for larger/closer particles
-          if (projectedSize > 1.5 && Math.random() > 0.7) {
-            ctx.beginPath();
-            ctx.arc(screenX, screenY, projectedSize * 3, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${p.colorObj.r}, ${p.colorObj.g}, ${p.colorObj.b}, ${alpha * 0.2})`;
-            ctx.fill();
-          }
         } else if (p.hexText) {
           // Render floating hex text directly in canvas for disintegrated particles
           ctx.font = `${Math.max(6, projectedSize)}px var(--font-mono, monospace)`;
