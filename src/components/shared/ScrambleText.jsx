@@ -9,38 +9,47 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
     let timeout;
     let animFrame;
     let startTime;
+    let lastUpdate = 0;
 
-    const charsElements = containerRef.current ? containerRef.current.querySelectorAll('.scramble-char') : [];
+    const wordElements = containerRef.current ? containerRef.current.querySelectorAll('.scramble-word') : [];
     
     const animate = () => {
       if (!startTime) startTime = Date.now();
-      const elapsed = Date.now() - startTime;
+      const now = Date.now();
+      const elapsed = now - startTime;
       const progress = Math.min(1, elapsed / duration);
 
-      if (charsElements.length === 0) return;
+      if (wordElements.length === 0) return;
 
       if (progress === 1) {
-        charsElements.forEach((el) => {
-          el.textContent = el.getAttribute('data-char');
+        wordElements.forEach((el) => {
+          el.textContent = el.getAttribute('data-word');
         });
         return;
       }
 
-      charsElements.forEach((el) => {
-        const char = el.getAttribute('data-char');
-        const i = parseInt(el.getAttribute('data-index'), 10);
-        const revealThreshold = i / text.length;
+      // Throttle updates to ~30fps for visual smoothness without lag
+      if (now - lastUpdate > 30) {
+        wordElements.forEach((el) => {
+          const word = el.getAttribute('data-word');
+          const globalOffset = parseInt(el.getAttribute('data-offset'), 10);
+          
+          let scrambled = '';
+          for (let i = 0; i < word.length; i++) {
+            const revealThreshold = (globalOffset + i) / text.length;
 
-        if (progress > revealThreshold + Math.random() * 0.3) {
-          el.textContent = char;
-        } else {
-          el.textContent = CHARS[Math.floor(Math.random() * CHARS.length)];
-        }
-      });
+            if (progress > revealThreshold + Math.random() * 0.2) {
+              scrambled += word[i];
+            } else {
+              scrambled += CHARS[Math.floor(Math.random() * CHARS.length)];
+            }
+          }
+          el.textContent = scrambled;
+        });
+        lastUpdate = now;
+      }
 
-      animFrame = requestAnimationFrame(() => {
-        setTimeout(animate, 40);
-      });
+      animFrame = requestAnimationFrame(animate);
     };
 
     timeout = setTimeout(() => {
@@ -54,45 +63,53 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
   }, [text, delay, duration]);
 
   const words = text.split(' ');
-  let globalIndex = 0;
+  let currentOffset = 0;
 
   return (
-    <span ref={containerRef} className={className} style={style}>
-      {words.map((word, wIdx) => (
-        <span key={wIdx} style={{ whiteSpace: 'nowrap' }}>
-          {word.split('').map((char, cIdx) => {
-            const currentIndex = globalIndex++;
-            return (
-              <span key={cIdx} style={{ display: 'inline-grid' }}>
-                <span style={{ visibility: 'hidden', gridArea: '1/1' }}>{char}</span>
+    <span ref={containerRef} className={className} style={{ ...style, display: 'inline-block' }}>
+      {words.map((word, wIdx) => {
+        const offset = currentOffset;
+        currentOffset += word.length + 1; // +1 for the space
+
+        return (
+          <span key={wIdx} style={{ whiteSpace: 'nowrap' }}>
+            <span style={{ display: 'inline-grid' }}>
+              <span style={{ visibility: 'hidden', gridArea: '1/1' }}>{word}</span>
+              <span 
+                style={{ 
+                  gridArea: '1/1', 
+                  placeSelf: 'center',
+                  width: 0,
+                  height: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'visible'
+                }}
+              >
                 <span 
+                  className="scramble-word" 
+                  data-word={word} 
+                  data-offset={offset}
                   style={{ 
-                    gridArea: '1/1', 
-                    placeSelf: 'center',
-                    width: 0,
-                    height: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'visible'
+                    color: 'inherit',
+                    WebkitTextFillColor: 'inherit',
+                    background: 'inherit',
+                    backgroundImage: 'inherit',
+                    WebkitBackgroundClip: 'inherit',
+                    whiteSpace: 'nowrap'
                   }}
                 >
-                  <span 
-                    className="scramble-char" 
-                    data-char={char} 
-                    data-index={currentIndex}
-                  >
-                    {CHARS[Math.floor(Math.random() * CHARS.length)]}
-                  </span>
+                  {word.replace(/./g, () => CHARS[Math.floor(Math.random() * CHARS.length)])}
                 </span>
               </span>
-            );
-          })}
-          {wIdx < words.length - 1 && (
-            <span style={{ display: 'inline-block', width: '0.25em' }}> </span>
-          )}
-        </span>
-      ))}
+            </span>
+            {wIdx < words.length - 1 && (
+              <span style={{ display: 'inline-block', width: '0.25em' }}> </span>
+            )}
+          </span>
+        );
+      })}
     </span>
   );
 }
