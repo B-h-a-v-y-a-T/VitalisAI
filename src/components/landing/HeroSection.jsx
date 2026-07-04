@@ -149,6 +149,7 @@ export default function HeroSection() {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            paddingTop: '120px', // Shift DNA down enough so the rotated top curve isn't clipped
           }}
         >
           <FHEPipelineViz />
