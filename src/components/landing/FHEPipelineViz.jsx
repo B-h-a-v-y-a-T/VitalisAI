@@ -68,16 +68,20 @@ export default function FHEPipelineViz() {
     // Initialize DNA particles
     const initDNA = () => {
       particles = [];
-      const numStrandParticles = 3000;
+      const numStrandParticles = 3000; // Total for both strands
       const numTwists = 2.5;
+      
+      const constantSpeed = 0.003; // ALL particles must move at the same speed so strands don't break
 
-      // 1. Strand Particles (Traverse along the curve)
+      // 1. Strand Particles
+      // We distribute them evenly so there are no gaps
       for (let i = 0; i < numStrandParticles; i++) {
-        const t = Math.random() * Math.PI * 2 * numTwists;
-        const strand = Math.random() > 0.5 ? 0 : Math.PI; // Phase offset
+        const t = (i / (numStrandParticles / 2)) * Math.PI * 2 * numTwists;
+        const strand = i < (numStrandParticles / 2) ? 0 : Math.PI; // Phase offset for the 2 strands
         
-        // Noise for organic ribbon width
-        const noiseRadius = (Math.random() - 0.5) * 40; 
+        // Very small noise for texture, keeps width constant
+        const noiseRadius = (Math.random() - 0.5) * 6; 
+        const noiseY = (Math.random() - 0.5) * 4;
         
         const randColor = Math.random();
         let colorObj = colors[0]; // 50% Deep Teal
@@ -89,32 +93,33 @@ export default function FHEPipelineViz() {
           t,
           strandOffset: strand,
           noiseRadius,
-          speed: (Math.random() * 0.01) + 0.005, // Speed of traversal
-          size: Math.random() * 2.0 + 1.0, // Increased size for visibility
+          noiseY,
+          speed: constantSpeed, // Constant speed prevents clumping/gaps
+          size: Math.random() * 2.0 + 1.0, 
           colorObj,
           isAttached: true,
           velocity: { x: 0, y: 0, z: 0 },
-          opacity: Math.random() * 0.5 + 0.5 // Higher base opacity
+          opacity: Math.random() * 0.5 + 0.5
         });
       }
 
-      // 2. Rung Particles (Horizontal bridges connecting strands)
-      const numRungs = 20; // Distinct, spaced-out ladder steps
+      // 2. Rung Particles (Horizontal bridges)
+      const numRungs = 45; // More regular base-pair spacing
       for (let i = 0; i < numRungs; i++) {
         const rungT = (i / numRungs) * Math.PI * 2 * numTwists;
-        for (let j = 0; j < 100; j++) { // High density for solid lines
+        for (let j = 0; j < 60; j++) {
           particles.push({
             type: 'rung',
-            t: rungT,
-            fraction: Math.random(), // Position along the rung (0 to 1)
-            speed: (Math.random() - 0.5) * 0.005, // Slight back and forth
-            noiseY: (Math.random() - 0.5) * 2, // VERY tight lines, no blurry scatter
+            t: rungT, // Rungs must have a 't' to move perfectly in sync with the strands
+            fraction: (j / 60) + (Math.random() * 0.02), // Evenly distributed across the rung
+            speed: constantSpeed, // MUST match strand speed exactly!
+            noiseY: (Math.random() - 0.5) * 2, // Tight sharp lines
             noiseZ: (Math.random() - 0.5) * 2,
             size: Math.random() * 1.5 + 0.5, // Crisp particles
-            colorObj: colors[1], // Medium Teal for good contrast
+            colorObj: colors[1], // Medium Teal
             isAttached: true,
             velocity: { x: 0, y: 0, z: 0 },
-            opacity: Math.random() * 0.6 + 0.4 // Highly noticeable/opaque
+            opacity: Math.random() * 0.6 + 0.4
           });
         }
       }
@@ -155,8 +160,8 @@ export default function FHEPipelineViz() {
             z: dirZ * (Math.random() * 1.5 + 1.5)
           };
           p.hexText = hexStrings[Math.floor(Math.random() * hexStrings.length)];
-          p.size = 18; // Increased font size for text
-          p.colorObj = colors[0]; // Force Deep Teal for high readability
+          p.size = 18; 
+          p.colorObj = colors[0]; 
         }
       }
 
@@ -172,21 +177,18 @@ export default function FHEPipelineViz() {
         let origX, origY, origZ;
 
         if (p.isAttached) {
+          // BOTH strands and rungs must traverse `t` to stay mathematically connected
+          p.t += p.speed;
+          if (p.t > Math.PI * 2 * numTwists) p.t = 0; // Wrap around
+
           if (p.type === 'strand') {
-            // Move along the strand
-            p.t += p.speed;
-            if (p.t > Math.PI * 2 * numTwists) p.t = 0; // Wrap around
-            
             const r = HELIX_RADIUS + p.noiseRadius;
             origX = Math.sin(p.t + p.strandOffset) * r;
             origZ = Math.cos(p.t + p.strandOffset) * r;
-            origY = p.t * heightScale - (HEIGHT * 1.2 / 2);
+            origY = p.t * heightScale - (HEIGHT * 1.2 / 2) + p.noiseY;
           } else if (p.type === 'rung') {
-            // Move along the rung
-            p.fraction += p.speed;
-            if (p.fraction > 1 || p.fraction < 0) p.speed *= -1; // Bounce
-            
-            const r = HELIX_RADIUS;
+            // Rung stays exactly between the two strands at its current `t`
+            const r = HELIX_RADIUS; // Rungs connect the perfectly circular boundary
             const x1 = Math.sin(p.t) * r;
             const z1 = Math.cos(p.t) * r;
             const x2 = Math.sin(p.t + Math.PI) * r;
