@@ -48,9 +48,9 @@ graph TD
 *   **Access Control**: Implements `FHE.allowSender()` and `FHE.allowThis()` to encrypt results (`ebool`) and authorize decryption exclusively for the Pharma admin.
 
 ### 3. The React Web App (`/src`)
-*   **Dashboard**: High-fidelity dark mode application showing real-time logs, network telemetry, and dataset registries.
+*   **Dashboard**: High-fidelity dynamic application showing real-time logs, network telemetry, and dataset registries, complete with premium glassmorphism and modern UI accents.
 *   **Real-time Streaming Encryption**: Visualizes row-by-row encryption, changing plaintext strings into secure hexadecimal FHE ciphertexts.
-*   **Confidential Matching Queue**: Visualizes the cryptographic pipeline (Encrypted Dataset ➔ CoFHE Engine ➔ Encrypted Processing ➔ Eligibility Results).
+*   **Confidential Matching Queue**: Visualizes the cryptographic pipeline (Encrypted Dataset ➔ CoFHE Engine ➔ Encrypted Processing ➔ Eligibility Results) with dynamic synchronized animations and visual effects that map directly to the FHE evaluation progress.
 *   **Recruiter View**: Integrates permit-based decryption where recruiters connect MetaMask, sign a permit, and unseal binary eligibility results.
 
 ---
