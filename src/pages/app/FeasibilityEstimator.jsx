@@ -9,31 +9,41 @@ import { MOCK_PATIENT_DB, MOCK_PATIENT_DB_NORTHEAST, MOCK_PATIENT_DB_MIDWEST, MO
 // The user-provided API Key (Split to bypass GitHub Secret Scanner while keeping it functional for the demo)
 const GEMINI_API_KEY = 'AQ.Ab8RN6LKT7zt' + 'iIhnexfkaxr88tfyhKwhNZpz1BwX1xJ_yJy33g';
 
+const generateFullDataset = (baseDataset, population) => {
+  const result = [];
+  for (let i = 0; i < population; i++) {
+    // We sample randomly ONCE during initialization to create a realistic but stable dataset
+    // This ensures deterministic answers for identical queries during the session
+    result.push(baseDataset[Math.floor(Math.random() * baseDataset.length)]);
+  }
+  return result;
+};
+
 const REGIONS = {
   "Northeast (Boston Area)": [
     { name: 'Massachusetts General Hospital', location: 'Boston, MA', address: '0xE822...01FA', color: '#ec4899', population: 1450, dataset: MOCK_PATIENT_DB_NORTHEAST },
     { name: 'Brigham and Women\'s Hospital', location: 'Boston, MA', address: '0x99D5...E233', color: '#8b5cf6', population: 1100, dataset: MOCK_PATIENT_DB_NORTHEAST },
     { name: 'Tufts Medical Center', location: 'Boston, MA', address: '0x32A1...9F0B', color: '#3b82f6', population: 600, dataset: MOCK_PATIENT_DB_NORTHEAST },
     { name: 'Boston Medical Center', location: 'Boston, MA', address: '0x74B8...44C1', color: '#10b981', population: 750, dataset: MOCK_PATIENT_DB_NORTHEAST }
-  ],
+  ].map(h => ({ ...h, fullDataset: generateFullDataset(h.dataset, h.population) })),
   "Mid-Atlantic (Baltimore Area)": [
     { name: 'Johns Hopkins Medicine', location: 'Baltimore, MD', address: '0x74B8...44C1', color: '#10b981', population: 1250, dataset: MOCK_PATIENT_DB },
     { name: 'University of Maryland Medical', location: 'Baltimore, MD', address: '0x99D5...E233', color: '#8b5cf6', population: 800, dataset: MOCK_PATIENT_DB },
     { name: 'Mercy Medical Center', location: 'Baltimore, MD', address: '0x32A1...9F0B', color: '#3b82f6', population: 450, dataset: MOCK_PATIENT_DB },
     { name: 'Sinai Hospital of Baltimore', location: 'Baltimore, MD', address: '0xE822...01FA', color: '#ec4899', population: 600, dataset: MOCK_PATIENT_DB }
-  ],
+  ].map(h => ({ ...h, fullDataset: generateFullDataset(h.dataset, h.population) })),
   "Midwest (Cleveland Area)": [
     { name: 'Cleveland Clinic Foundation', location: 'Cleveland, OH', address: '0x99D5...E233', color: '#8b5cf6', population: 1420, dataset: MOCK_PATIENT_DB_MIDWEST },
     { name: 'University Hospitals Cleveland', location: 'Cleveland, OH', address: '0x32A1...9F0B', color: '#3b82f6', population: 980, dataset: MOCK_PATIENT_DB_MIDWEST },
     { name: 'MetroHealth Medical Center', location: 'Cleveland, OH', address: '0x74B8...44C1', color: '#10b981', population: 500, dataset: MOCK_PATIENT_DB_MIDWEST },
     { name: 'Fairview Hospital', location: 'Cleveland, OH', address: '0xE822...01FA', color: '#ec4899', population: 350, dataset: MOCK_PATIENT_DB_MIDWEST }
-  ],
+  ].map(h => ({ ...h, fullDataset: generateFullDataset(h.dataset, h.population) })),
   "South (Houston Area)": [
     { name: 'Houston Methodist Hospital', location: 'Houston, TX', address: '0x99D5...E233', color: '#8b5cf6', population: 1600, dataset: MOCK_PATIENT_DB_SOUTH },
     { name: 'Memorial Hermann', location: 'Houston, TX', address: '0x74B8...44C1', color: '#10b981', population: 1100, dataset: MOCK_PATIENT_DB_SOUTH },
     { name: 'Texas Heart Institute', location: 'Houston, TX', address: '0x32A1...9F0B', color: '#3b82f6', population: 450, dataset: MOCK_PATIENT_DB_SOUTH },
     { name: 'Baylor St. Luke\'s Medical', location: 'Houston, TX', address: '0xE822...01FA', color: '#ec4899', population: 750, dataset: MOCK_PATIENT_DB_SOUTH }
-  ]
+  ].map(h => ({ ...h, fullDataset: generateFullDataset(h.dataset, h.population) }))
 };
 
 export default function FeasibilityEstimator() {
@@ -189,13 +199,12 @@ Query: "${text}"`
       // Artificial delay for UI
       await new Promise(r => setTimeout(r, 1000));
       
-      // Mathematically simulate realistic matching against the HARDCODED regional dataset
-      // Generate a distinct pool for this specific hospital by randomly sampling from its regional dataset
+      // Mathematically simulate realistic matching against the pre-generated full dataset
       let matches = 0;
-      for (let p = 0; p < currentHospitals[i].population; p++) {
-        const regionalDB = currentHospitals[i].dataset;
-        const randomPatient = regionalDB[Math.floor(Math.random() * regionalDB.length)];
-        if (evaluatePatient(randomPatient, queryToRun.parsedCriteria)) {
+      const fullDataset = currentHospitals[i].fullDataset;
+      
+      for (let p = 0; p < fullDataset.length; p++) {
+        if (evaluatePatient(fullDataset[p], queryToRun.parsedCriteria)) {
           matches++;
         }
       }
