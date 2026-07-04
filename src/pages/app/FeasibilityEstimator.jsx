@@ -148,13 +148,20 @@ Query: "${text}"`
 
   // Helper to evaluate a patient against the structured JSON criteria
   const evaluatePatient = (patient, criteria) => {
-    if (!criteria || Object.keys(criteria).length === 0) return true;
+    if (!criteria || typeof criteria !== 'object' || Object.keys(criteria).length === 0) return true;
+    
     for (const [key, cond] of Object.entries(criteria)) {
       const lowerKey = key.toLowerCase();
       if (patient[lowerKey] === undefined) continue;
+      
       const { operator, value } = cond;
+      if (!operator || value === undefined) continue;
+      
       const pVal = Number(patient[lowerKey]);
-      const cVal = Number(value);
+      const cVal = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]+/g,"")) : Number(value);
+      
+      if (isNaN(pVal) || isNaN(cVal)) continue; // Don't fail if we can't parse
+
       if (operator === '>' && !(pVal > cVal)) return false;
       if (operator === '<' && !(pVal < cVal)) return false;
       if (operator === '>=' && !(pVal >= cVal)) return false;
