@@ -99,22 +99,22 @@ export default function FHEPipelineViz() {
       }
 
       // 2. Rung Particles (Horizontal bridges connecting strands)
-      const numRungs = 20;
+      const numRungs = 35; // Increased number of connections
       for (let i = 0; i < numRungs; i++) {
         const rungT = (i / numRungs) * Math.PI * 2 * numTwists;
-        for (let j = 0; j < 80; j++) {
+        for (let j = 0; j < 120; j++) { // Increased density per rung
           particles.push({
             type: 'rung',
             t: rungT,
             fraction: Math.random(), // Position along the rung (0 to 1)
             speed: (Math.random() - 0.5) * 0.005, // Slight back and forth
-            noiseY: (Math.random() - 0.5) * 15,
-            noiseZ: (Math.random() - 0.5) * 15,
-            size: Math.random() * 1.5 + 0.5,
-            colorObj: colors[1], // Medium Teal rungs
+            noiseY: (Math.random() - 0.5) * 12,
+            noiseZ: (Math.random() - 0.5) * 12,
+            size: Math.random() * 2.0 + 0.8, // Increased size
+            colorObj: Math.random() > 0.5 ? colors[0] : colors[1], // Darker colors for rungs
             isAttached: true,
             velocity: { x: 0, y: 0, z: 0 },
-            opacity: Math.random() * 0.5 + 0.3
+            opacity: Math.random() * 0.6 + 0.4 // Higher opacity
           });
         }
       }
@@ -151,7 +151,8 @@ export default function FHEPipelineViz() {
             z: (Math.random() - 0.5) * 2
           };
           p.hexText = hexStrings[Math.floor(Math.random() * hexStrings.length)];
-          p.size = 12; // Font size for text
+          p.size = 18; // Increased font size for text
+          p.colorObj = colors[0]; // Force Deep Teal for high readability
         }
       }
 
@@ -206,13 +207,13 @@ export default function FHEPipelineViz() {
           p.x += p.velocity.x;
           p.y += p.velocity.y;
           p.z += p.velocity.z;
-          p.opacity -= 0.005; // Dissolve
+          p.opacity -= 0.003; // Dissolve slightly slower
           
           if (p.opacity < 0) {
             // Re-attach to maintain density
             p.isAttached = true;
             p.opacity = Math.random() * 0.7 + 0.3;
-            p.size = Math.random() * 1.5 + 0.5; // FIX: Reset size back to normal!
+            p.size = Math.random() * 2.0 + 1.0; // Reset size back to normal!
             p.hexText = null;
             if (p.type === 'strand') p.t = Math.random() * Math.PI * 2 * numTwists;
           }
@@ -234,7 +235,9 @@ export default function FHEPipelineViz() {
         const screenY = p.y * perspective + CENTER_Y + scrollYShift;
         const projectedSize = p.size * perspective;
 
-        const alpha = Math.min(1, Math.max(0.02, perspective * p.opacity));
+        // Make floating text much darker and more opaque
+        const baseAlpha = p.hexText ? p.opacity * 1.5 : p.opacity; 
+        const alpha = Math.min(1, Math.max(0.05, perspective * baseAlpha));
         const colorStr = `rgba(${p.colorObj.r}, ${p.colorObj.g}, ${p.colorObj.b}, ${alpha})`;
 
         if (p.isAttached) {
@@ -252,7 +255,7 @@ export default function FHEPipelineViz() {
           }
         } else if (p.hexText) {
           // Render floating hex text directly in canvas for disintegrated particles
-          ctx.font = `${Math.max(6, projectedSize)}px var(--font-mono, monospace)`;
+          ctx.font = `600 ${Math.max(10, projectedSize)}px var(--font-mono, monospace)`;
           ctx.fillStyle = colorStr;
           ctx.fillText(p.hexText, screenX, screenY);
         }
