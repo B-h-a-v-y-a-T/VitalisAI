@@ -14,7 +14,7 @@ export default function HeroSection() {
       display: 'flex',
       alignItems: 'flex-start', // Shift up into the available top space
       overflow: 'hidden',
-      paddingTop: 140, // Reduced from vertical center to push everything up
+      paddingTop: 100, // Reduced to push everything up even more
       paddingBottom: 80,
     }}>
       {/* Background Effects */}
@@ -39,7 +39,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
-          style={{ paddingTop: 40 }} // Slight padding to balance visual weight against DNA
+          style={{ paddingTop: 10 }} // Reduced inner padding to pull it up
         >
           {/* Badge */}
           <motion.div
