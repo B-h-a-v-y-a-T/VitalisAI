@@ -144,11 +144,15 @@ export default function FHEPipelineViz() {
         if (attached.length > 0) {
           const p = attached[Math.floor(Math.random() * attached.length)];
           p.isAttached = false;
-          // Slowly drift outward and dissolve
+          // Calculate outward radial direction to push text to the outer sides
+          const dist = Math.sqrt(p.x * p.x + p.z * p.z) || 1;
+          const dirX = p.x / dist;
+          const dirZ = p.z / dist;
+
           p.velocity = {
-            x: (Math.random() - 0.5) * 2,
-            y: (Math.random() - 0.5) * 2.5 - 0.5, // Mostly float up slightly
-            z: (Math.random() - 0.5) * 2
+            x: dirX * (Math.random() * 1.5 + 1.5), // Strong push outwards
+            y: (Math.random() - 0.5) * 2.0 - 0.5, // Float up/down slightly
+            z: dirZ * (Math.random() * 1.5 + 1.5)
           };
           p.hexText = hexStrings[Math.floor(Math.random() * hexStrings.length)];
           p.size = 18; // Increased font size for text
