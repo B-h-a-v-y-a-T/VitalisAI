@@ -48,37 +48,24 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         borderBottom: '1px solid var(--border-secondary)',
         minHeight: 64,
       }}>
-        <div style={{
-          width: 36,
-          height: 36,
-          borderRadius: 'var(--radius-md)',
-          background: 'linear-gradient(135deg, var(--teal), var(--mint))',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          boxShadow: '0 4px 15px rgba(45, 212, 191, 0.3)',
-        }}>
-          <Shield size={18} color="#fff" />
-        </div>
-        <AnimatePresence>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
+          <img src="/logo.jpeg" alt="Vitalis Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} />
           {!collapsed && (
-            <motion.span
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontWeight: 800,
-                fontSize: '1.15rem',
-                letterSpacing: '-0.02em',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Vitalis<span style={{ color: 'var(--mint)' }}>AI</span>
-            </motion.span>
+            <span style={{
+              fontFamily: 'var(--font-display)',
+              fontWeight: 300,
+              fontSize: '1.2rem',
+              letterSpacing: '0.35em',
+              background: 'linear-gradient(90deg, #6EE7B7 0%, #3B82F6 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textTransform: 'uppercase',
+              marginLeft: '4px'
+            }}>
+              Vitalis
+            </span>
           )}
-        </AnimatePresence>
+        </Link>
       </div>
 
       {/* Navigation */}

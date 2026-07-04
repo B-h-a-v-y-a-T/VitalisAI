@@ -47,27 +47,20 @@ export default function Navbar() {
         maxWidth: 'var(--landing-max-width)',
       }}>
         {/* Logo */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-          <div style={{
-            width: 36,
-            height: 36,
-            borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(135deg, var(--teal) 0%, var(--mint) 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 15px rgba(45, 212, 191, 0.3)',
-          }}>
-            <Shield size={20} color="#fff" />
-          </div>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
+          <img src="/logo.jpeg" alt="Vitalis Logo" style={{ width: 42, height: 42, objectFit: 'contain' }} />
           <span style={{
             fontFamily: 'var(--font-display)',
-            fontWeight: 800,
-            fontSize: '1.25rem',
-            letterSpacing: '-0.02em',
-            color: 'var(--text-primary)',
+            fontWeight: 300,
+            fontSize: '1.4rem',
+            letterSpacing: '0.35em', // Wide tracking like the image
+            background: 'linear-gradient(90deg, #6EE7B7 0%, #3B82F6 100%)', // Mint to Blue gradient
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            textTransform: 'uppercase',
+            marginLeft: '4px'
           }}>
-            Vitalis<span style={{ color: 'var(--mint)' }}>AI</span>
+            Vitalis
           </span>
         </Link>
 

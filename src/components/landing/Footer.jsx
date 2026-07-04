@@ -16,26 +16,22 @@ export default function Footer() {
         }}>
           {/* Brand */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <div style={{
-                width: 32,
-                height: 32,
-                borderRadius: 'var(--radius-sm)',
-                background: 'linear-gradient(135deg, var(--teal), var(--mint))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <Shield size={16} color="#fff" />
-              </div>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', marginBottom: '24px' }}>
+              <img src="/logo.jpeg" alt="Vitalis Logo" style={{ width: 42, height: 42, objectFit: 'contain' }} />
               <span style={{
                 fontFamily: 'var(--font-display)',
-                fontWeight: 800,
-                fontSize: '1.1rem',
+                fontWeight: 300,
+                fontSize: '1.4rem',
+                letterSpacing: '0.35em',
+                background: 'linear-gradient(90deg, #6EE7B7 0%, #3B82F6 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textTransform: 'uppercase',
+                marginLeft: '4px'
               }}>
-                Vitalis<span style={{ color: 'var(--mint)' }}>AI</span>
+                Vitalis
               </span>
-            </div>
+            </Link>
             <p style={{
               fontSize: '0.85rem',
               color: 'var(--text-tertiary)',
