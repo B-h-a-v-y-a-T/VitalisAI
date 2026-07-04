@@ -6,6 +6,7 @@ import {
   ClipboardList, ScrollText, ShieldCheck, Settings,
   ChevronLeft, ChevronRight, Shield,
 } from 'lucide-react';
+import ScrambleText from '../shared/ScrambleText';
 
 const navItems = [
   { path: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
@@ -51,19 +52,22 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
           <img src="/logo.jpeg" alt="Vitalis Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} />
           {!collapsed && (
-            <span style={{
-              fontFamily: 'var(--font-display)',
-              fontWeight: 300,
-              fontSize: '1.2rem',
-              letterSpacing: '0.35em',
-              background: 'linear-gradient(90deg, #6EE7B7 0%, #3B82F6 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textTransform: 'uppercase',
-              marginLeft: '4px'
-            }}>
-              Vitalis
-            </span>
+            <ScrambleText 
+              text="Vitalis AI"
+              delay={300}
+              duration={1300}
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontWeight: 300,
+                fontSize: '1.2rem',
+                letterSpacing: '0.35em',
+                background: 'linear-gradient(90deg, #6EE7B7 0%, #3B82F6 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textTransform: 'uppercase',
+                marginLeft: '4px'
+              }}
+            />
           )}
         </Link>
       </div>

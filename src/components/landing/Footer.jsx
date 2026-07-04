@@ -1,5 +1,6 @@
 import { Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ScrambleText from '../shared/ScrambleText';
 export default function Footer() {
   return (
     <footer style={{
@@ -18,19 +19,22 @@ export default function Footer() {
           <div>
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', marginBottom: '24px' }}>
               <img src="/logo.jpeg" alt="Vitalis Logo" style={{ width: 42, height: 42, objectFit: 'contain' }} />
-              <span style={{
-                fontFamily: 'var(--font-display)',
-                fontWeight: 300,
-                fontSize: '1.4rem',
-                letterSpacing: '0.35em',
-                background: 'linear-gradient(90deg, #6EE7B7 0%, #3B82F6 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                textTransform: 'uppercase',
-                marginLeft: '4px'
-              }}>
-                Vitalis
-              </span>
+              <ScrambleText 
+                text="Vitalis AI"
+                delay={400}
+                duration={1400}
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 300,
+                  fontSize: '1.4rem',
+                  letterSpacing: '0.35em',
+                  background: 'linear-gradient(90deg, #6EE7B7 0%, #3B82F6 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  textTransform: 'uppercase',
+                  marginLeft: '4px'
+                }}
+              />
             </Link>
             <p style={{
               fontSize: '0.85rem',

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 const CHARS = '0123456789ABCDEF!@#$%^&*';
 
-export default function ScrambleText({ text, delay = 0, duration = 1500, className }) {
+export default function ScrambleText({ text, delay = 0, duration = 1500, className, style }) {
   const [displayText, setDisplayText] = useState(
     text.replace(/[a-zA-Z0-9]/g, () => CHARS[Math.floor(Math.random() * CHARS.length)])
   );
@@ -47,5 +47,5 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
     };
   }, [text, delay, duration]);
 
-  return <span className={className}>{displayText}</span>;
+  return <span className={className} style={style}>{displayText}</span>;
 }

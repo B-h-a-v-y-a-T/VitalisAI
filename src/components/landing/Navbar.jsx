@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Menu, X } from 'lucide-react';
 import ThemeToggle from '../shared/ThemeToggle';
 import GradientButton from '../shared/GradientButton';
+import ScrambleText from '../shared/ScrambleText';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -49,19 +50,22 @@ export default function Navbar() {
         {/* Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
           <img src="/logo.jpeg" alt="Vitalis Logo" style={{ width: 42, height: 42, objectFit: 'contain' }} />
-          <span style={{
-            fontFamily: 'var(--font-display)',
-            fontWeight: 300,
-            fontSize: '1.4rem',
-            letterSpacing: '0.35em', // Wide tracking like the image
-            background: 'linear-gradient(90deg, #6EE7B7 0%, #3B82F6 100%)', // Mint to Blue gradient
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            textTransform: 'uppercase',
-            marginLeft: '4px'
-          }}>
-            Vitalis
-          </span>
+          <ScrambleText 
+            text="Vitalis AI"
+            delay={200}
+            duration={1200}
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontWeight: 300,
+              fontSize: '1.4rem',
+              letterSpacing: '0.35em', // Wide tracking like the image
+              background: 'linear-gradient(90deg, #6EE7B7 0%, #3B82F6 100%)', // Mint to Blue gradient
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textTransform: 'uppercase',
+              marginLeft: '4px'
+            }}
+          />
         </Link>
 
         {/* Desktop Nav */}
