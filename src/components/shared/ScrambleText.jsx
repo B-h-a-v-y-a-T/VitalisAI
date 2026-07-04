@@ -63,22 +63,15 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
           {word.split('').map((char, cIdx) => {
             const currentIndex = globalIndex++;
             return (
-              <span key={cIdx} style={{ position: 'relative', display: 'inline-block' }}>
-                <span style={{ visibility: 'hidden' }}>{char}</span>
+              <span key={cIdx} style={{ display: 'inline-grid' }}>
+                <span style={{ visibility: 'hidden', gridArea: '1/1' }}>{char}</span>
                 <span 
                   className="scramble-char" 
                   data-char={char} 
                   data-index={currentIndex}
                   style={{ 
-                    position: 'absolute', 
-                    top: 0, 
-                    left: '50%', 
-                    transform: 'translateX(-50%)',
-                    color: 'inherit',
-                    WebkitTextFillColor: 'inherit',
-                    background: 'inherit',
-                    backgroundImage: 'inherit',
-                    WebkitBackgroundClip: 'inherit'
+                    gridArea: '1/1', 
+                    placeSelf: 'center'
                   }}
                 >
                   {CHARS[Math.floor(Math.random() * CHARS.length)]}
