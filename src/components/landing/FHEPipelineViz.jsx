@@ -99,22 +99,22 @@ export default function FHEPipelineViz() {
       }
 
       // 2. Rung Particles (Horizontal bridges connecting strands)
-      const numRungs = 35; // Increased number of connections
+      const numRungs = 25; // Balanced number of connections
       for (let i = 0; i < numRungs; i++) {
         const rungT = (i / numRungs) * Math.PI * 2 * numTwists;
-        for (let j = 0; j < 120; j++) { // Increased density per rung
+        for (let j = 0; j < 60; j++) { // Lower density per rung for clarity
           particles.push({
             type: 'rung',
             t: rungT,
             fraction: Math.random(), // Position along the rung (0 to 1)
             speed: (Math.random() - 0.5) * 0.005, // Slight back and forth
-            noiseY: (Math.random() - 0.5) * 12,
-            noiseZ: (Math.random() - 0.5) * 12,
-            size: Math.random() * 2.0 + 0.8, // Increased size
-            colorObj: Math.random() > 0.5 ? colors[0] : colors[1], // Darker colors for rungs
+            noiseY: (Math.random() - 0.5) * 8, // Tighter lines
+            noiseZ: (Math.random() - 0.5) * 8,
+            size: Math.random() * 1.0 + 0.5, // Smaller, thinner particles
+            colorObj: Math.random() > 0.5 ? colors[1] : colors[2], // Lighter colors (Teal/Mint)
             isAttached: true,
             velocity: { x: 0, y: 0, z: 0 },
-            opacity: Math.random() * 0.6 + 0.4 // Higher opacity
+            opacity: Math.random() * 0.4 + 0.1 // Much lighter opacity
           });
         }
       }
