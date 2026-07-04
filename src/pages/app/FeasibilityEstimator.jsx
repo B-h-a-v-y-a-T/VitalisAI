@@ -101,13 +101,18 @@ Query: "${text}"`
       decryptedCount: null
     };
 
-    setQueries([...queries, newQuery]);
+    setQueries(prev => [...prev, newQuery]);
     setSelectedQueryId(newQuery.id);
     setNewDescription('');
     
     // Reset simulation
     setSimulationState('idle');
     setHospitalSubmissions(HOSPITALS.map(h => ({ ...h, status: 'pending', flagCount: 0 })));
+
+    // Automatically start simulation for the new query
+    setTimeout(() => {
+      startSimulationForQuery(newQuery);
+    }, 500);
   };
 
   // Helper to generate a realistic mock hospital patient
@@ -137,16 +142,19 @@ Query: "${text}"`
     return true;
   };
 
-  const startSimulation = async () => {
-    if (!selectedQuery) return;
+  const startSimulationForQuery = async (queryToRun) => {
+    if (!queryToRun) return;
     
     setSimulationState('submitting');
-    const updatedSubmissions = [...hospitalSubmissions];
     
     for (let i = 0; i < HOSPITALS.length; i++) {
       setCurrentSubmittingIndex(i);
-      updatedSubmissions[i].status = 'encrypting';
-      setHospitalSubmissions([...updatedSubmissions]);
+      
+      setHospitalSubmissions(prev => {
+        const next = [...prev];
+        next[i] = { ...next[i], status: 'encrypting' };
+        return next;
+      });
       
       // Artificial delay for UI
       await new Promise(r => setTimeout(r, 1000));
@@ -155,14 +163,21 @@ Query: "${text}"`
       let matches = 0;
       for (let p = 0; p < HOSPITALS[i].population; p++) {
         const patient = generateRandomPatient();
-        if (evaluatePatient(patient, selectedQuery.parsedCriteria)) {
+        if (evaluatePatient(patient, queryToRun.parsedCriteria)) {
           matches++;
         }
       }
       
-      updatedSubmissions[i].status = 'submitted';
-      updatedSubmissions[i].flagCount = matches;
-      setHospitalSubmissions([...updatedSubmissions]);
+      setHospitalSubmissions(prev => {
+        const next = [...prev];
+        next[i] = { ...next[i], status: 'submitted', flagCount: matches };
+        return next;
+      });
+      
+      // Update the query sites enrolled count in real-time
+      setQueries(prev => prev.map(q => 
+        q.id === queryToRun.id ? { ...q, submissionsCount: i + 1 } : q
+      ));
     }
     
     setCurrentSubmittingIndex(-1);
@@ -179,8 +194,12 @@ Query: "${text}"`
     
     // Update query status
     setQueries(prev => prev.map(q => 
-      q.id === selectedQueryId ? { ...q, status: 'ready_to_decrypt', submissionsCount: 4 } : q
+      q.id === queryToRun.id ? { ...q, status: 'ready_to_decrypt' } : q
     ));
+  };
+
+  const startSimulation = () => {
+    startSimulationForQuery(selectedQuery);
   };
 
   const handleDecryptCount = async () => {
