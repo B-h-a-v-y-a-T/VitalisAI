@@ -244,11 +244,12 @@ export default function ClinicalTrials() {
                     <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--success)' }}>Weights Deployed On-Chain</span>
                   </div>
                 ) : (
-                  <GradientButton icon={Upload} style={{ width: '100%' }} onClick={deployWeights} disabled={deploying}>
+                  <GradientButton icon={Upload} style={{ width: '100%', border: '1px solid var(--mint)' }} onClick={deployWeights} disabled={deploying}>
                     {deploying ? 'Deploying...' : 'Deploy Weights On-Chain'}
                   </GradientButton>
                 )}
-                <GradientButton variant="secondary" icon={Eye} style={{ width: '100%' }}>Preview</GradientButton>
+                <GradientButton variant="secondary" icon={Upload} style={{ width: '100%', border: '1px solid var(--border-secondary)' }}>Upload New Weights</GradientButton>
+                <GradientButton variant="secondary" icon={Eye} style={{ width: '100%', border: '1px solid var(--border-secondary)' }}>Preview</GradientButton>
               </div>
             </GlassCard>
           </motion.div>

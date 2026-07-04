@@ -4,16 +4,37 @@ import { Compass, HelpCircle, Lock, Unlock, Server, Shield, Plus, Send, RefreshC
 import GlassCard from '../../components/shared/GlassCard';
 import GradientButton from '../../components/shared/GradientButton';
 import StatusBadge from '../../components/shared/StatusBadge';
+import { MOCK_PATIENT_DB, MOCK_PATIENT_DB_NORTHEAST, MOCK_PATIENT_DB_MIDWEST, MOCK_PATIENT_DB_SOUTH } from '../../data/mockPatients';
 
 // The user-provided API Key (Split to bypass GitHub Secret Scanner while keeping it functional for the demo)
 const GEMINI_API_KEY = 'AQ.Ab8RN6LKT7zt' + 'iIhnexfkaxr88tfyhKwhNZpz1BwX1xJ_yJy33g';
 
-const HOSPITALS = [
-  { name: 'Mayo Clinic Center', address: '0x32A1...9F0B', color: '#3b82f6', population: 1250 },
-  { name: 'Johns Hopkins Medicine', address: '0x74B8...44C1', color: '#10b981', population: 980 },
-  { name: 'Cleveland Clinic Foundation', address: '0x99D5...E233', color: '#8b5cf6', population: 1420 },
-  { name: 'Massachusetts General Hospital', address: '0xE822...01FA', color: '#ec4899', population: 850 }
-];
+const REGIONS = {
+  "Northeast (Boston Area)": [
+    { name: 'Massachusetts General Hospital', location: 'Boston, MA', address: '0xE822...01FA', color: '#ec4899', population: 1450, dataset: MOCK_PATIENT_DB_NORTHEAST },
+    { name: 'Brigham and Women\'s Hospital', location: 'Boston, MA', address: '0x99D5...E233', color: '#8b5cf6', population: 1100, dataset: MOCK_PATIENT_DB_NORTHEAST },
+    { name: 'Tufts Medical Center', location: 'Boston, MA', address: '0x32A1...9F0B', color: '#3b82f6', population: 600, dataset: MOCK_PATIENT_DB_NORTHEAST },
+    { name: 'Boston Medical Center', location: 'Boston, MA', address: '0x74B8...44C1', color: '#10b981', population: 750, dataset: MOCK_PATIENT_DB_NORTHEAST }
+  ],
+  "Mid-Atlantic (Baltimore Area)": [
+    { name: 'Johns Hopkins Medicine', location: 'Baltimore, MD', address: '0x74B8...44C1', color: '#10b981', population: 1250, dataset: MOCK_PATIENT_DB },
+    { name: 'University of Maryland Medical', location: 'Baltimore, MD', address: '0x99D5...E233', color: '#8b5cf6', population: 800, dataset: MOCK_PATIENT_DB },
+    { name: 'Mercy Medical Center', location: 'Baltimore, MD', address: '0x32A1...9F0B', color: '#3b82f6', population: 450, dataset: MOCK_PATIENT_DB },
+    { name: 'Sinai Hospital of Baltimore', location: 'Baltimore, MD', address: '0xE822...01FA', color: '#ec4899', population: 600, dataset: MOCK_PATIENT_DB }
+  ],
+  "Midwest (Cleveland Area)": [
+    { name: 'Cleveland Clinic Foundation', location: 'Cleveland, OH', address: '0x99D5...E233', color: '#8b5cf6', population: 1420, dataset: MOCK_PATIENT_DB_MIDWEST },
+    { name: 'University Hospitals Cleveland', location: 'Cleveland, OH', address: '0x32A1...9F0B', color: '#3b82f6', population: 980, dataset: MOCK_PATIENT_DB_MIDWEST },
+    { name: 'MetroHealth Medical Center', location: 'Cleveland, OH', address: '0x74B8...44C1', color: '#10b981', population: 500, dataset: MOCK_PATIENT_DB_MIDWEST },
+    { name: 'Fairview Hospital', location: 'Cleveland, OH', address: '0xE822...01FA', color: '#ec4899', population: 350, dataset: MOCK_PATIENT_DB_MIDWEST }
+  ],
+  "South (Houston Area)": [
+    { name: 'Houston Methodist Hospital', location: 'Houston, TX', address: '0x99D5...E233', color: '#8b5cf6', population: 1600, dataset: MOCK_PATIENT_DB_SOUTH },
+    { name: 'Memorial Hermann', location: 'Houston, TX', address: '0x74B8...44C1', color: '#10b981', population: 1100, dataset: MOCK_PATIENT_DB_SOUTH },
+    { name: 'Texas Heart Institute', location: 'Houston, TX', address: '0x32A1...9F0B', color: '#3b82f6', population: 450, dataset: MOCK_PATIENT_DB_SOUTH },
+    { name: 'Baylor St. Luke\'s Medical', location: 'Houston, TX', address: '0xE822...01FA', color: '#ec4899', population: 750, dataset: MOCK_PATIENT_DB_SOUTH }
+  ]
+};
 
 export default function FeasibilityEstimator() {
   const [queries, setQueries] = useState([
@@ -42,11 +63,21 @@ export default function FeasibilityEstimator() {
   const [isParsing, setIsParsing] = useState(false);
   const [isPermitSigned, setIsPermitSigned] = useState(false);
   const [simulationState, setSimulationState] = useState('idle'); // idle | submitting | summing | complete
+  const [selectedRegion, setSelectedRegion] = useState("Northeast (Boston Area)");
+  
+  const currentHospitals = REGIONS[selectedRegion];
+
   const [hospitalSubmissions, setHospitalSubmissions] = useState(
-    HOSPITALS.map(h => ({ ...h, status: 'pending', flagCount: 0 }))
+    currentHospitals.map(h => ({ ...h, status: 'pending', flagCount: 0 }))
   );
   const [currentSubmittingIndex, setCurrentSubmittingIndex] = useState(-1);
   const [sumAnimationIndex, setSumAnimationIndex] = useState(-1);
+
+  // Update submissions when region changes
+  useEffect(() => {
+    setHospitalSubmissions(currentHospitals.map(h => ({ ...h, status: 'pending', flagCount: 0 })));
+    setSimulationState('idle');
+  }, [selectedRegion]);
 
   const selectedQuery = queries.find(q => q.id === selectedQueryId);
 
@@ -107,7 +138,7 @@ Query: "${text}"`
     
     // Reset simulation
     setSimulationState('idle');
-    setHospitalSubmissions(HOSPITALS.map(h => ({ ...h, status: 'pending', flagCount: 0 })));
+    setHospitalSubmissions(currentHospitals.map(h => ({ ...h, status: 'pending', flagCount: 0 })));
 
     // Automatically start simulation for the new query
     setTimeout(() => {
@@ -115,23 +146,14 @@ Query: "${text}"`
     }, 500);
   };
 
-  // Helper to generate a realistic mock hospital patient
-  const generateRandomPatient = () => ({
-    age: 30 + Math.floor(Math.random() * 50),
-    sex: Math.random() > 0.5 ? 1 : 0,
-    trestbps: 90 + Math.floor(Math.random() * 90),
-    chol: 150 + Math.floor(Math.random() * 200),
-    fbs: Math.random() > 0.85 ? 1 : 0,
-    thalach: 80 + Math.floor(Math.random() * 120),
-  });
-
   // Helper to evaluate a patient against the structured JSON criteria
   const evaluatePatient = (patient, criteria) => {
     if (!criteria || Object.keys(criteria).length === 0) return true;
     for (const [key, cond] of Object.entries(criteria)) {
-      if (patient[key] === undefined) continue;
+      const lowerKey = key.toLowerCase();
+      if (patient[lowerKey] === undefined) continue;
       const { operator, value } = cond;
-      const pVal = Number(patient[key]);
+      const pVal = Number(patient[lowerKey]);
       const cVal = Number(value);
       if (operator === '>' && !(pVal > cVal)) return false;
       if (operator === '<' && !(pVal < cVal)) return false;
@@ -146,8 +168,9 @@ Query: "${text}"`
     if (!queryToRun) return;
     
     setSimulationState('submitting');
+    let runningTotalMatches = 0;
     
-    for (let i = 0; i < HOSPITALS.length; i++) {
+    for (let i = 0; i < currentHospitals.length; i++) {
       setCurrentSubmittingIndex(i);
       
       setHospitalSubmissions(prev => {
@@ -159,14 +182,18 @@ Query: "${text}"`
       // Artificial delay for UI
       await new Promise(r => setTimeout(r, 1000));
       
-      // Mathematically simulate realistic matching against the generated population
+      // Mathematically simulate realistic matching against the HARDCODED regional dataset
+      // Generate a distinct pool for this specific hospital by randomly sampling from its regional dataset
       let matches = 0;
-      for (let p = 0; p < HOSPITALS[i].population; p++) {
-        const patient = generateRandomPatient();
-        if (evaluatePatient(patient, queryToRun.parsedCriteria)) {
+      for (let p = 0; p < currentHospitals[i].population; p++) {
+        const regionalDB = currentHospitals[i].dataset;
+        const randomPatient = regionalDB[Math.floor(Math.random() * regionalDB.length)];
+        if (evaluatePatient(randomPatient, queryToRun.parsedCriteria)) {
           matches++;
         }
       }
+      
+      runningTotalMatches += matches;
       
       setHospitalSubmissions(prev => {
         const next = [...prev];
@@ -184,7 +211,7 @@ Query: "${text}"`
     setSimulationState('summing');
     
     // Animate contract summing values
-    for (let i = 0; i < HOSPITALS.length; i++) {
+    for (let i = 0; i < currentHospitals.length; i++) {
       setSumAnimationIndex(i);
       await new Promise(r => setTimeout(r, 800));
     }
@@ -192,9 +219,9 @@ Query: "${text}"`
     setSumAnimationIndex(-1);
     setSimulationState('complete');
     
-    // Update query status
+    // Automatically decrypt and show sum immediately for UX
     setQueries(prev => prev.map(q => 
-      q.id === queryToRun.id ? { ...q, status: 'ready_to_decrypt' } : q
+      q.id === queryToRun.id ? { ...q, status: 'decrypted', decryptedCount: runningTotalMatches } : q
     ));
   };
 
@@ -203,10 +230,9 @@ Query: "${text}"`
   };
 
   const handleDecryptCount = async () => {
-    if (!isPermitSigned) {
-      setIsPermitSigned(true);
-      return;
-    }
+    // Simulate Metamask signing delay for the demo
+    setIsPermitSigned(true);
+    await new Promise(r => setTimeout(r, 600));
 
     setQueries(prev => prev.map(q => {
       if (q.id === selectedQueryId) {
@@ -255,11 +281,31 @@ Query: "${text}"`
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Create Feasibility Query */}
           <GlassCard padding="24px">
-            <h3 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Plus size={16} style={{ color: 'var(--mint)' }} />
-              Initiate Feasibility Query (Pharma)
-            </h3>
-            <form onSubmit={handleCreateQuery} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Plus size={16} style={{ color: 'var(--mint)' }} />
+                Initiate Feasibility Query (Pharma)
+              </h3>
+            </div>
+            
+            <form onSubmit={handleCreateQuery} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
+                  Select Target Region
+                </label>
+                <select 
+                  className="input" 
+                  value={selectedRegion}
+                  onChange={(e) => setSelectedRegion(e.target.value)}
+                  style={{ width: '100%', fontSize: '0.8rem', padding: '10px 12px', background: 'rgba(0,0,0,0.2)' }}
+                  disabled={isParsing || simulationState !== 'idle'}
+                >
+                  {Object.keys(REGIONS).map(region => (
+                    <option key={region} value={region}>{region}</option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
                   Natural Language Query
@@ -274,7 +320,7 @@ Query: "${text}"`
                   style={{ resize: 'none', fontSize: '0.8rem' }}
                 />
               </div>
-              <GradientButton type="submit" disabled={!newDescription.trim() || isParsing} icon={isParsing ? RefreshCw : Send}>
+              <GradientButton type="submit" disabled={!newDescription.trim() || isParsing || simulationState === 'submitting' || simulationState === 'summing'} icon={isParsing ? RefreshCw : Send}>
                 {isParsing ? 'Gemini is Parsing...' : 'Broadcast Query to Network'}
               </GradientButton>
             </form>
@@ -440,10 +486,13 @@ Query: "${text}"`
                       boxShadow: isSubmitting || isAnimatingSum ? `0 0 15px ${hospital.color}20` : 'none',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: hospital.color }} />
-                        <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>{hospital.name}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div style={{ width: 10, height: 10, borderRadius: '50%', background: hospital.color }} />
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>{hospital.name}</span>
+                        </div>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', paddingLeft: 18 }}>📍 {hospital.location}</span>
                       </div>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{hospital.address}</span>
                     </div>

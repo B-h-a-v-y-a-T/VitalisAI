@@ -5,7 +5,7 @@ import Sidebar from '../components/app/Sidebar';
 import TopBar from '../components/app/TopBar';
 
 export default function AppLayout() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>

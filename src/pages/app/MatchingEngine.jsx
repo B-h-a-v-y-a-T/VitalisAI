@@ -33,21 +33,12 @@ export default function MatchingEngine() {
     window.URL.revokeObjectURL(url);
   };
 
-  useEffect(() => {
-    let interval;
-    if (isMatching) {
-      interval = setInterval(() => {
-        setActivePhase(prev => (prev + 1) % 4);
-      }, 1500);
-    } else {
-      setActivePhase(-1);
-    }
-    return () => clearInterval(interval);
-  }, [isMatching]);
+
 
   const startMatch = async () => {
     if (!selectedDataset) return;
     setIsMatching(true);
+    setActivePhase(0);
     
     const ds = datasets.find(d => d.id === selectedDataset);
     
@@ -80,8 +71,16 @@ export default function MatchingEngine() {
           time: new Date().toLocaleTimeString()
         });
         setIsMatching(false);
+        setActivePhase(3); // Keep it highlighted at the end
       } else {
         const progress = Math.floor((processedRows / totalRows) * 100);
+        
+        // Sync pipeline visual strictly to progress
+        if (progress < 25) setActivePhase(0);
+        else if (progress < 50) setActivePhase(1);
+        else if (progress < 75) setActivePhase(2);
+        else setActivePhase(3);
+
         updateMatchingJob(jobId, {
           progress,
           status: 'mapping'
@@ -112,28 +111,7 @@ export default function MatchingEngine() {
         </p>
       </motion.div>
 
-      {/* Performance Metrics */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
-        {[
-          { icon: Zap, label: 'Processing Speed', value: 142, suffix: ' rows/s', color: 'var(--mint)' },
-          { icon: Activity, label: 'Active Jobs', value: 2, color: 'var(--info)' },
-          { icon: Server, label: 'Engine Latency', value: 45, suffix: 'ms', color: 'var(--teal)' },
-          { icon: Shield, label: 'Privacy Score', value: 100, suffix: '%', color: 'var(--success)' },
-        ].map((metric, i) => {
-          const Icon = metric.icon;
-          return (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-              <GlassCard padding="20px">
-                <Icon size={20} style={{ color: metric.color, marginBottom: 12 }} />
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
-                  <AnimatedCounter value={metric.value} suffix={metric.suffix} />
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4 }}>{metric.label}</div>
-              </GlassCard>
-            </motion.div>
-          );
-        })}
-      </div>
+
 
       {/* New Match Form */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
@@ -182,7 +160,7 @@ export default function MatchingEngine() {
         transition={{ delay: 0.3 }}
       >
         <GlassCard padding="40px" glow style={{ marginBottom: 32 }}>
-          <h3 style={{ fontSize: '0.85rem', fontWeight: 700, textAlign: 'center', marginBottom: 32, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-tertiary)' }}>
+          <h3 style={{ fontSize: '0.9rem', fontWeight: 900, textAlign: 'center', marginBottom: 32, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-primary)' }}>
             FHE Matching Pipeline
           </h3>
 
@@ -196,51 +174,130 @@ export default function MatchingEngine() {
                 <motion.div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                   <motion.div
                     animate={{
-                      scale: isActive ? 1.1 : 1,
-                      boxShadow: isActive ? `0 0 30px ${phase.color}40` : '0 4px 15px rgba(0,0,0,0.05)',
+                      scale: isActive ? 1.05 : 1,
+                      y: isActive ? -5 : 0,
                     }}
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      gap: 10,
+                      gap: 16,
+                      position: 'relative',
+                      zIndex: 2,
                     }}
                   >
-                    <div style={{
-                      width: 72,
-                      height: 72,
-                      borderRadius: 'var(--radius-xl)',
-                      background: 'var(--bg-primary)',
-                      border: isActive ? `2px solid ${phase.color}` : '1px solid var(--border-secondary)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.4s ease',
-                      boxShadow: isActive ? `0 0 20px ${phase.color}20` : 'none',
-                    }}>
-                      <Icon size={28} style={{ color: isActive ? phase.color : 'var(--text-tertiary)' }} />
+                    <div style={{ position: 'relative' }}>
+                      {/* Pulsing orbital ring when active */}
+                      {isActive && (
+                         <motion.div
+                           animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0, 0.6] }}
+                           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                           style={{
+                             position: 'absolute',
+                             inset: -15,
+                             borderRadius: 28,
+                             background: `radial-gradient(circle, ${phase.color}50 0%, transparent 70%)`,
+                             zIndex: 0
+                           }}
+                         />
+                      )}
+
+                      {/* Firecracker Sparkles */}
+                      {isActive && (
+                        <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+                          {[...Array(6)].map((_, j) => (
+                            <motion.div
+                              key={j}
+                              animate={{
+                                scale: [0, 1.5, 0],
+                                opacity: [0, 1, 0],
+                                x: [0, (Math.random() - 0.5) * 100],
+                                y: [0, (Math.random() - 0.5) * 100],
+                              }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                                repeatDelay: Math.random() * 0.5,
+                                ease: "easeOut"
+                              }}
+                              style={{
+                                position: 'absolute',
+                                top: '50%', left: '50%',
+                                width: 4, height: 4,
+                                background: phase.color,
+                                borderRadius: '50%',
+                                boxShadow: `0 0 10px ${phase.color}`,
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Main Node Card */}
+                      <div style={{
+                        position: 'relative',
+                        zIndex: 1,
+                        width: 86,
+                        height: 86,
+                        borderRadius: 24,
+                        background: isActive 
+                           ? `linear-gradient(135deg, rgba(45,212,191,0.15) 0%, rgba(45,212,191,0.05) 100%)`
+                           : 'var(--bg-primary)',
+                        border: isActive ? `1px solid ${phase.color}80` : '1px solid var(--border-secondary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: isActive ? `inset 0 0 25px ${phase.color}20, 0 10px 40px ${phase.color}30` : '0 4px 15px rgba(0,0,0,0.05)',
+                        transition: 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                      }}>
+                        <Icon size={34} style={{ 
+                          color: isActive ? phase.color : 'var(--text-tertiary)',
+                          filter: isActive ? `drop-shadow(0 0 10px ${phase.color})` : 'none',
+                          transition: 'all 0.4s ease'
+                        }} />
+                      </div>
                     </div>
+
                     <span style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      fontWeight: isActive ? 700 : 600,
                       textAlign: 'center',
                       color: isActive ? 'var(--text-primary)' : 'var(--text-tertiary)',
                       whiteSpace: 'pre-line',
                       lineHeight: 1.3,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em'
                     }}>
                       {phase.label}
                     </span>
                   </motion.div>
 
+                  {/* Animated Light Beam Pipes */}
                   {i < phases.length - 1 && (
-                    <motion.div
-                      animate={{
-                        opacity: isPast ? [0.3, 1, 0.3] : 0.3,
-                      }}
-                      transition={{ duration: 1.5, repeat: isPast ? Infinity : 0 }}
-                    >
-                      <ArrowRight size={20} style={{ color: isPast ? phases[i].color : 'var(--text-tertiary)' }} />
-                    </motion.div>
+                    <div style={{ 
+                      width: 60, 
+                      height: 3, 
+                      background: 'var(--border-secondary)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      borderRadius: 3,
+                      marginTop: -32 // Align with the center of the 86px box
+                    }}>
+                       <motion.div 
+                         animate={{ x: [-60, 60] }}
+                         transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
+                         style={{
+                           position: 'absolute',
+                           top: 0,
+                           left: 0,
+                           width: '100%',
+                           height: '100%',
+                           background: isPast ? `linear-gradient(90deg, transparent, ${phases[i].color}, transparent)` : 'transparent',
+                           opacity: isPast ? 1 : 0,
+                           boxShadow: isPast ? `0 0 8px ${phases[i].color}` : 'none'
+                         }}
+                       />
+                    </div>
                   )}
                 </motion.div>
               );

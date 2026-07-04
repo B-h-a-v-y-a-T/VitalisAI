@@ -19,6 +19,8 @@ const statusConfig = {
   info: { label: 'Info', className: 'badge-info', icon: Zap },
   warning: { label: 'Warning', className: 'badge-warning', icon: AlertTriangle },
   error: { label: 'Error', className: 'badge-error', icon: XCircle },
+  ready_to_decrypt: { label: 'Sealed', className: 'badge-warning', icon: Lock },
+  decrypted: { label: 'Decrypted', className: 'badge-success', icon: CheckCircle },
 };
 
 export default function StatusBadge({ status, label, size = 'sm' }) {

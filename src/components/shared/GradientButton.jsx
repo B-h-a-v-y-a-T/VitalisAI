@@ -8,6 +8,7 @@ export default function GradientButton({
   icon: Icon,
   className = '',
   disabled = false,
+  style = {},
   ...props
 }) {
   const sizes = {
@@ -61,6 +62,7 @@ export default function GradientButton({
         whiteSpace: 'nowrap',
         ...sizes[size],
         ...variants[variant],
+        ...style,
       }}
       whileHover={!disabled ? {
         y: -2,

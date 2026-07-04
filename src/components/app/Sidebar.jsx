@@ -14,19 +14,20 @@ const navItems = [
   { path: '/app/registry', icon: Database, label: 'Dataset Registry' },
   { path: '/app/matching', icon: Cpu, label: 'Matching Engine' },
   { path: '/app/trials', icon: FlaskConical, label: 'Clinical Trials' },
-  { path: '/app/results', icon: ClipboardList, label: 'Results' },
   { path: '/app/demo', icon: ShieldCheck, label: 'FHE Demo' },
-  { path: '/app/audit', icon: ScrollText, label: 'Audit Logs' },
-  { path: '/app/access', icon: ShieldCheck, label: 'Access Control' },
-  { path: '/app/recruiter', icon: UserCheck, label: 'Recruiter View' },
   { path: '/app/feasibility', icon: Compass, label: 'Feasibility Estimator' },
   { path: '/app/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function Sidebar({ collapsed, setCollapsed }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const isExpanded = !collapsed || isHovered;
+
   return (
     <motion.aside
-      animate={{ width: collapsed ? 72 : 280 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      animate={{ width: isExpanded ? 280 : 72 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
       style={{
         height: '100vh',
@@ -37,14 +38,14 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         position: 'fixed',
         left: 0,
         top: 0,
-        zIndex: 'var(--z-sticky)',
+        zIndex: 9999,
         backdropFilter: 'blur(20px)',
         overflow: 'hidden',
       }}
     >
       {/* Logo */}
       <div style={{
-        padding: collapsed ? '20px 16px' : '20px 24px',
+        padding: !isExpanded ? '20px 16px' : '20px 24px',
         display: 'flex',
         alignItems: 'center',
         gap: 10,
@@ -53,7 +54,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
           <img src="/logo.png" alt="Vitalis Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} />
-          {!collapsed && (
+          {isExpanded && (
             <ScrambleText 
               text="Vitalis AI"
               delay={300}
@@ -77,7 +78,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       {/* Navigation */}
       <nav style={{
         flex: 1,
-        padding: collapsed ? '12px 8px' : '12px 12px',
+        padding: !isExpanded ? '12px 8px' : '12px 12px',
         display: 'flex',
         flexDirection: 'column',
         gap: 2,
@@ -95,8 +96,8 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
-                padding: collapsed ? '10px 0' : '10px 14px',
-                justifyContent: collapsed ? 'center' : 'flex-start',
+                padding: !isExpanded ? '10px 0' : '10px 14px',
+                justifyContent: !isExpanded ? 'center' : 'flex-start',
                 borderRadius: 'var(--radius-md)',
                 fontSize: '0.85rem',
                 fontWeight: isActive ? 600 : 500,
@@ -110,7 +111,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             >
               <Icon size={20} style={{ flexShrink: 0 }} />
               <AnimatePresence>
-                {!collapsed && (
+                {isExpanded && (
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -133,14 +134,14 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           borderTop: '1px solid var(--border-secondary)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: collapsed ? 'center' : 'flex-end',
+          justifyContent: !isExpanded ? 'center' : 'flex-end',
           color: 'var(--text-tertiary)',
           transition: 'color 0.2s',
         }}
         onMouseEnter={e => e.currentTarget.style.color = 'var(--mint)'}
         onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}
       >
-        {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        {!isExpanded ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
       </button>
     </motion.aside>
   );

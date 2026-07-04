@@ -11,14 +11,17 @@ export default function TopBar() {
       borderBottom: '1px solid var(--border-secondary)',
       background: 'var(--nav-bg)',
       backdropFilter: 'blur(20px)',
-      display: 'flex',
+      display: 'grid',
+      gridTemplateColumns: '1fr auto 1fr',
       alignItems: 'center',
-      justifyContent: 'space-between',
       padding: '0 24px',
       position: 'sticky',
       top: 0,
       zIndex: 'var(--z-sticky)',
     }}>
+      {/* Left Spacer for Grid */}
+      <div />
+
       {/* Search */}
       <div style={{
         display: 'flex',
@@ -30,7 +33,6 @@ export default function TopBar() {
         border: `1px solid ${searchFocused ? 'var(--mint)' : 'var(--input-border)'}`,
         transition: 'all 0.2s ease',
         width: 360,
-        maxWidth: '40%',
         boxShadow: searchFocused ? '0 0 0 3px rgba(45, 212, 191, 0.1)' : 'none',
       }}>
         <Search size={16} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
@@ -63,7 +65,7 @@ export default function TopBar() {
       </div>
 
       {/* Right Section */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'end' }}>
         <ThemeToggle size={16} />
 
         {/* Notifications */}
