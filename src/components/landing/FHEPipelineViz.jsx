@@ -1,17 +1,13 @@
-import { useRef, useState, useEffect } from 'react';
-import { motion, useAnimationFrame, useScroll, useTransform, useSpring } from 'framer-motion';
-import { Lock, Shield, Database, Server, CheckCircle, FileCode2 } from 'lucide-react';
+import { useRef, useEffect } from 'react';
+import { useScroll, useTransform, useSpring } from 'framer-motion';
 
 export default function FHEPipelineViz() {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
-  const packetsContainerRef = useRef(null);
   
   // Interaction & Scroll State
   const { scrollYProgress } = useScroll();
   const smoothScrollPhase = useSpring(scrollYProgress, { damping: 30, stiffness: 100 });
-  
-  const [activeStep, setActiveStep] = useState(0);
   
   // Parallax
   const mouseX = useRef(0);
@@ -24,26 +20,8 @@ export default function FHEPipelineViz() {
   const WIDTH = 800;
   const CENTER_X = WIDTH / 2;
   const CENTER_Y = HEIGHT / 2;
-  const HELIX_RADIUS = 280; // Large enough to enclose the cards
+  const HELIX_RADIUS = 280; // Large enough to fill the space
   
-  const steps = [
-    { icon: Database, label: 'Hospital\nDataset', color: '#3B82F6' },
-    { icon: Lock, label: 'Browser\nEncryption', color: '#2DD4BF' },
-    { icon: Shield, label: 'Encrypted\nDataset', color: '#0F6E6A' },
-    { icon: Server, label: 'FHE Matching\nEngine', color: '#2DD4BF' },
-    { icon: FileCode2, label: 'Encrypted\nEligibility Score', color: '#0F6E6A' },
-    { icon: CheckCircle, label: 'Matched\nPatient IDs', color: '#10B981' },
-  ];
-
-  // Map steps to precise Y coordinates
-  const stepNodes = steps.map((_, i) => ({
-    y: 120 + i * ((HEIGHT - 240) / (steps.length - 1))
-  }));
-  const BROWSER_ENC_Y = stepNodes[1].y;
-  const FHE_ENGINE_Y = stepNodes[3].y;
-
-  // DOM Packets State
-  const domPackets = useRef([]);
   const hexStrings = ['0xa7f3...', '0xe2b1...', '0xc8e3...', '0x9d4c...', '0x1bf6...', '0xf4a2...', '0x33d1...'];
 
   useEffect(() => {
@@ -57,20 +35,11 @@ export default function FHEPipelineViz() {
       targetMouseY.current = y * 30;
     };
     
-    const unsubscribeScroll = scrollYProgress.onChange((v) => {
-      // Map scroll progress to active card
-      const stepIndex = Math.min(steps.length - 1, Math.floor(v * steps.length * 1.5));
-      setActiveStep(stepIndex);
-    });
-
     window.addEventListener('mousemove', handleMouseMove);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      unsubscribeScroll();
-      domPackets.current.forEach(p => p.el.remove());
-      domPackets.current = [];
     };
-  }, [scrollYProgress, steps.length]);
+  }, []);
 
   // ---------------------------------------------------------
   // CANVAS DNA ENGINE
@@ -160,18 +129,24 @@ export default function FHEPipelineViz() {
       const cos = Math.cos(totalRotation);
       const sin = Math.sin(totalRotation);
 
-      // Random detachment (Disintegration)
-      if (Math.random() < 0.1) {
+      // Parallax easing
+      mouseX.current += (targetMouseX.current - mouseX.current) * 0.05;
+      mouseY.current += (targetMouseY.current - mouseY.current) * 0.05;
+
+      // Random detachment (Disintegration into hex strings)
+      if (Math.random() < 0.15) {
         const attached = particles.filter(p => p.isAttached);
         if (attached.length > 0) {
           const p = attached[Math.floor(Math.random() * attached.length)];
           p.isAttached = false;
           // Slowly drift outward and dissolve
           p.velocity = {
-            x: (Math.random() - 0.5) * 1.5,
-            y: (Math.random() - 0.5) * 2 - 0.5, // Mostly float up slightly
-            z: (Math.random() - 0.5) * 1.5
+            x: (Math.random() - 0.5) * 2,
+            y: (Math.random() - 0.5) * 2.5 - 0.5, // Mostly float up slightly
+            z: (Math.random() - 0.5) * 2
           };
+          p.hexText = hexStrings[Math.floor(Math.random() * hexStrings.length)];
+          p.size = 12; // Font size for text
         }
       }
 
@@ -232,6 +207,7 @@ export default function FHEPipelineViz() {
             // Re-attach to maintain density
             p.isAttached = true;
             p.opacity = Math.random() * 0.7 + 0.3;
+            p.hexText = null;
             if (p.type === 'strand') p.t = Math.random() * Math.PI * 2 * numTwists;
           }
         }
@@ -255,17 +231,24 @@ export default function FHEPipelineViz() {
         const alpha = Math.min(1, Math.max(0.02, perspective * p.opacity));
         const colorStr = `rgba(${p.colorObj.r}, ${p.colorObj.g}, ${p.colorObj.b}, ${alpha})`;
 
-        ctx.beginPath();
-        ctx.arc(screenX, screenY, projectedSize, 0, Math.PI * 2);
-        ctx.fillStyle = colorStr;
-        ctx.fill();
-
-        // Soft bloom for larger/closer particles
-        if (projectedSize > 1.5 && Math.random() > 0.7) {
+        if (p.isAttached) {
           ctx.beginPath();
-          ctx.arc(screenX, screenY, projectedSize * 3, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${p.colorObj.r}, ${p.colorObj.g}, ${p.colorObj.b}, ${alpha * 0.2})`;
+          ctx.arc(screenX, screenY, projectedSize, 0, Math.PI * 2);
+          ctx.fillStyle = colorStr;
           ctx.fill();
+
+          // Soft bloom for larger/closer particles
+          if (projectedSize > 1.5 && Math.random() > 0.7) {
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, projectedSize * 3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${p.colorObj.r}, ${p.colorObj.g}, ${p.colorObj.b}, ${alpha * 0.2})`;
+            ctx.fill();
+          }
+        } else if (p.hexText) {
+          // Render floating hex text directly in canvas for disintegrated particles
+          ctx.font = `${Math.max(6, projectedSize)}px var(--font-mono, monospace)`;
+          ctx.fillStyle = colorStr;
+          ctx.fillText(p.hexText, screenX, screenY);
         }
       });
 
@@ -277,206 +260,8 @@ export default function FHEPipelineViz() {
     return () => cancelAnimationFrame(animId);
   }, [smoothScrollPhase]);
 
-  // ---------------------------------------------------------
-  // DOM PACKETS ENGINE (Encrypted Data Origin & Flow)
-  // ---------------------------------------------------------
-  useAnimationFrame((time) => {
-    // Parallax easing
-    mouseX.current += (targetMouseX.current - mouseX.current) * 0.05;
-    mouseY.current += (targetMouseY.current - mouseY.current) * 0.05;
-
-    // 1. Spawning Packets from DNA strands
-    if (Math.random() < 0.03 && domPackets.current.length < 15) {
-      // Find a visual coordinate representing the strand edge
-      const yOrig = Math.random() * (BROWSER_ENC_Y - 150) + 50; 
-      const isLeft = Math.random() > 0.5;
-      const xOrig = isLeft ? CENTER_X - HELIX_RADIUS : CENTER_X + HELIX_RADIUS;
-
-      const el = document.createElement('div');
-      el.className = 'dom-packet';
-      el.innerHTML = `<span>${hexStrings[Math.floor(Math.random() * hexStrings.length)]}</span>`;
-      packetsContainerRef.current?.appendChild(el);
-
-      domPackets.current.push({
-        el,
-        x: xOrig,
-        y: yOrig,
-        targetY: HEIGHT + 100, // Flows all the way down
-        progress: 0,
-        speed: 0.001 + Math.random() * 0.0005, // Smooth slow speed
-        state: 'converging', // converging -> fragmenting -> flowing
-      });
-    }
-
-    // 2. Process Packet Flow
-    for (let i = domPackets.current.length - 1; i >= 0; i--) {
-      const p = domPackets.current[i];
-      p.progress += p.speed;
-      
-      let currentX = p.x;
-      let currentY = p.y + (p.targetY - p.y) * p.progress; // Linear vertical flow
-
-      // State: Converging (Drifting from strand edge to center pipeline)
-      if (p.state === 'converging') {
-        const distanceToEncryption = Math.max(0, BROWSER_ENC_Y - currentY);
-        const totalDistance = BROWSER_ENC_Y - p.y;
-        const convergenceFactor = 1 - (distanceToEncryption / totalDistance);
-        
-        // Easing function for smooth horizontal convergence
-        const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-        currentX = p.x + (CENTER_X - p.x) * easeOutCubic(convergenceFactor);
-
-        if (currentY >= BROWSER_ENC_Y - 30) {
-          p.state = 'fragmenting';
-          p.el.classList.add('packet-fragment');
-          
-          // Trigger the CSS animation
-          setTimeout(() => {
-            if (p.el && p.el.parentNode) {
-              p.state = 'secured';
-              p.el.classList.remove('packet-fragment');
-              p.el.classList.add('packet-secured');
-              p.el.innerHTML = `<span style="margin-right:4px; font-size:0.6rem">🔒</span>${p.el.textContent}`;
-              p.speed *= 1.5; // Accelerate slightly after encryption
-            }
-          }, 800); // 800ms fragment animation
-        }
-      } else {
-        // Once converging is done, it flows straight down the center axis
-        currentX = CENTER_X;
-      }
-
-      // State: Computing (FHE Engine)
-      if (p.state === 'secured' && currentY >= FHE_ENGINE_Y && currentY <= FHE_ENGINE_Y + 50) {
-        if (!p.el.classList.contains('packet-computing')) {
-          p.el.classList.add('packet-computing');
-          setTimeout(() => {
-            if (p.el && p.el.parentNode) p.el.classList.remove('packet-computing');
-          }, 1000);
-        }
-      }
-
-      // Parallax applied to packets (less intense than DNA for depth)
-      const px = currentX + mouseX.current * 0.5;
-      const py = currentY + mouseY.current * 0.5;
-
-      p.el.style.transform = `translate(${px}px, ${py}px)`;
-
-      // Cleanup
-      if (p.progress >= 1 || currentY > HEIGHT) {
-        p.el.remove();
-        domPackets.current.splice(i, 1);
-      }
-    }
-  });
-
   return (
     <div ref={containerRef} style={{ position: 'relative', width: WIDTH, height: HEIGHT, margin: '0 auto' }}>
-      <style>{`
-        .dom-packet {
-          position: absolute;
-          top: 0; left: 0;
-          transform: translate(-50%, -50%);
-          font-family: var(--font-mono);
-          font-size: 0.7rem;
-          color: var(--mint);
-          padding: 6px 14px;
-          border-radius: var(--radius-full);
-          white-space: nowrap;
-          pointer-events: none;
-          z-index: 20;
-          opacity: 0.8;
-          transition: background 0.4s ease, border 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
-          background: rgba(10, 46, 54, 0.4);
-          border: 1px solid rgba(45, 212, 191, 0.2);
-          backdrop-filter: blur(4px);
-        }
-
-        .packet-fragment span {
-          display: inline-block;
-          animation: fragment-anim 0.8s ease-in-out forwards;
-        }
-
-        @keyframes fragment-anim {
-          0% { filter: blur(0px); letter-spacing: normal; transform: scale(1); opacity: 1; color: var(--mint); }
-          40% { filter: blur(3px); letter-spacing: 4px; transform: scale(1.1); opacity: 0.7; color: white; }
-          100% { filter: blur(0px); letter-spacing: normal; transform: scale(1); opacity: 1; color: var(--mint); }
-        }
-
-        .packet-secured {
-          background: rgba(45, 212, 191, 0.15);
-          border: 1px solid rgba(45, 212, 191, 0.8);
-          color: white;
-          box-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
-          font-weight: 600;
-        }
-
-        .packet-computing {
-          background: rgba(15, 110, 106, 0.4);
-          border: 1px solid var(--teal);
-          box-shadow: 0 0 30px rgba(15, 110, 106, 0.6);
-        }
-
-        .pipeline-card {
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 150px;
-          height: 120px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          background: rgba(255, 255, 255, 0.05); /* Light/Dark friendly */
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(45, 212, 191, 0.15);
-          border-radius: var(--radius-xl);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-          transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-          z-index: 10;
-        }
-        
-        [data-theme="dark"] .pipeline-card {
-           background: rgba(10, 46, 54, 0.5);
-           border: 1px solid rgba(45, 212, 191, 0.1);
-        }
-
-        .pipeline-card.active {
-          border-color: rgba(45, 212, 191, 0.8);
-          box-shadow: 0 12px 40px rgba(45, 212, 191, 0.25), inset 0 1px 1px rgba(255,255,255,0.4);
-          transform: translateX(-50%) scale(1.05);
-          background: rgba(255, 255, 255, 0.1);
-        }
-        
-        [data-theme="dark"] .pipeline-card.active {
-           background: rgba(10, 46, 54, 0.8);
-           box-shadow: 0 12px 40px rgba(45, 212, 191, 0.15), inset 0 1px 1px rgba(255,255,255,0.1);
-        }
-
-        .pipeline-card.past {
-          border-color: rgba(45, 212, 191, 0.3);
-          opacity: 0.8;
-        }
-
-        .pulse-ring {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 100%;
-          height: 100%;
-          transform: translate(-50%, -50%);
-          border-radius: var(--radius-xl);
-          border: 2px dashed rgba(45, 212, 191, 0.6);
-          animation: pulse-out 2s infinite cubic-bezier(0.16, 1, 0.3, 1);
-          pointer-events: none;
-        }
-
-        @keyframes pulse-out {
-          0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
-          100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; }
-        }
-      `}</style>
-
       {/* CANVAS BACKGROUND (DNA Helix) */}
       <canvas 
         ref={canvasRef} 
@@ -490,54 +275,6 @@ export default function FHEPipelineViz() {
           transformOrigin: 'center center'
         }}
       />
-
-      {/* PACKETS LAYER (Emerging from DNA) */}
-      <div ref={packetsContainerRef} style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 5 }} />
-
-      {/* PIPELINE CARDS (Foreground Enclosure) */}
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 10 }}>
-        {steps.map((step, i) => {
-          const Icon = step.icon;
-          const isActive = activeStep === i;
-          const isPast = activeStep > i;
-          
-          let cardClass = 'pipeline-card';
-          if (isActive) cardClass += ' active';
-          if (isPast) cardClass += ' past';
-
-          return (
-            <div 
-              key={i} 
-              className={cardClass}
-              style={{ top: stepNodes[i].y - 60 }} // Center the 120px tall card on the Y coord
-            >
-              {isActive && i === 3 && <div className="pulse-ring" />}
-              
-              <div style={{
-                marginBottom: 10,
-                color: isActive || isPast ? step.color : 'var(--mint)',
-                opacity: isActive ? 1 : 0.6,
-                transition: 'all 0.5s ease',
-              }}>
-                <Icon size={28} strokeWidth={isActive ? 2 : 1.5} />
-              </div>
-              
-              <span style={{
-                fontSize: '0.75rem',
-                fontWeight: isActive ? 700 : 600,
-                color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                textAlign: 'center',
-                whiteSpace: 'pre-line',
-                lineHeight: 1.3,
-                letterSpacing: '0.02em',
-                transition: 'color 0.5s ease',
-              }}>
-                {step.label}
-              </span>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
