@@ -12,24 +12,29 @@ export default function HeroSection() {
       position: 'relative',
       minHeight: '100vh',
       display: 'flex',
-      alignItems: 'flex-start', // Shift up into the available top space
-      paddingTop: 100, // Reduced to push everything up even more
+      alignItems: 'flex-start', // Use top space
+      paddingTop: 120, // Reduced significantly to use space on top
       paddingBottom: 80,
+      overflow: 'hidden', // to safely allow DNA to bleed off the edge
     }}>
       {/* Background Effects */}
       <div style={{
         position: 'absolute',
         inset: 0,
-        background: 'radial-gradient(ellipse at 30% 50%, rgba(15, 110, 106, 0.08) 0%, transparent 60%), radial-gradient(ellipse at 70% 30%, rgba(45, 212, 191, 0.06) 0%, transparent 50%)',
+        background: `
+          radial-gradient(circle at 85% 50%, rgba(45, 212, 191, 0.25) 0%, transparent 40%),
+          radial-gradient(circle at 80% 50%, rgba(45, 212, 191, 0.15) 0%, transparent 60%),
+          radial-gradient(ellipse at 60% 50%, rgba(15, 110, 106, 0.04) 0%, transparent 80%)
+        `,
         pointerEvents: 'none',
       }} />
-      <ParticleField count={25} color="rgba(45, 212, 191, 0.4)" speed={0.3} />
+      <ParticleField count={10} color="rgba(45, 212, 191, 0.4)" speed={0.3} />
 
-      <div className="container" style={{
+      <div className="container container-wide" style={{
         display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
+        gridTemplateColumns: '48fr 52fr', // Give the text more width
         gap: '60px',
-        alignItems: 'flex-start', // Top-align the grid columns
+        alignItems: 'flex-start',
         position: 'relative',
         zIndex: 2,
       }}>
@@ -38,7 +43,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
-          style={{ paddingTop: 10 }} // Reduced inner padding to pull it up
+          style={{ paddingTop: 0 }}
         >
           {/* Badge */}
           <motion.div
@@ -66,26 +71,29 @@ export default function HeroSection() {
           {/* Headline with Encryption Animation */}
           <h1 style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2.5rem, 5vw, 3.75rem)',
+            fontSize: 'clamp(2.8rem, 5.5vw, 4.2rem)', // Slightly larger font size
             fontWeight: 800,
-            lineHeight: 1.08,
+            lineHeight: 1.05,
             letterSpacing: '-0.03em',
             color: 'var(--text-primary)',
             marginBottom: 24,
+            maxWidth: '800px', // Practically unlimited for this column
           }}>
-            <ScrambleText text="Clinical Trial Matching." delay={100} duration={1200} /> <br />
-            <span className="text-gradient">
-              <ScrambleText text="Zero Data Exposure." delay={600} duration={1500} />
+            <ScrambleText text="Clinical Trial" delay={100} duration={1200} />{' '}
+            <ScrambleText text="Matching." delay={300} duration={1200} /> <br />
+            <span className="text-gradient" style={{ display: 'inline-block', marginTop: '0.1em' }}>
+              <ScrambleText text="Zero Data" delay={600} duration={1500} />{' '}
+              <ScrambleText text="Exposure." delay={800} duration={1500} />
             </span>
           </h1>
 
           {/* Description */}
           <p style={{
-            fontSize: '1.15rem',
-            lineHeight: 1.7,
+            fontSize: '1.2rem',
+            lineHeight: 1.8,
             color: 'var(--text-secondary)',
-            marginBottom: 36,
-            maxWidth: 520,
+            marginBottom: 40,
+            maxWidth: 700, // Very wide
           }}>
             Match patients to clinical trials using AI — while every record stays
             fully encrypted. Built on Fhenix CoFHE for computation on ciphertext.
@@ -93,7 +101,7 @@ export default function HeroSection() {
           </p>
 
           {/* CTAs */}
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 48 }}>
+          <div style={{ display: 'flex', gap: 24, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 48 }}>
             <Link to="/app">
               <GradientButton size="lg" icon={ArrowRight}>
                 Launch Platform
@@ -146,8 +154,9 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.3 }}
           style={{
             display: 'flex',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             alignItems: 'center',
+            transform: 'translateX(100px) scale(1.08)',
           }}
         >
           <FHEPipelineViz />
@@ -158,6 +167,7 @@ export default function HeroSection() {
         @media (max-width: 900px) {
           .container {
             grid-template-columns: 1fr !important;
+            gap: 40px !important;
           }
         }
       `}</style>

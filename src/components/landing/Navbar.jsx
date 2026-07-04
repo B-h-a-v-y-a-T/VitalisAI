@@ -72,7 +72,7 @@ export default function Navbar() {
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '32px',
+          gap: '48px',
         }} className="desktop-nav">
           {navLinks.map(link => (
             <a
