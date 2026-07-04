@@ -6,7 +6,7 @@ export default function FHEPipelineViz() {
   
   // Scroll Parallax for rotation speed
   const { scrollYProgress } = useScroll();
-  const scrollSpeed = useTransform(scrollYProgress, [0, 1], [0.002, 0.015]);
+  const scrollSpeed = useTransform(scrollYProgress, [0, 1], [0.002, 0.012]);
   const smoothScrollSpeed = useSpring(scrollSpeed, { damping: 20, stiffness: 100 });
 
   useEffect(() => {
@@ -24,10 +24,10 @@ export default function FHEPipelineViz() {
     const WIDTH = rect.width;
     const HEIGHT = rect.height;
     
-    // 3D Engine constants
-    const FOV = 600;
-    const HELIX_RADIUS = 120;
-    const HELIX_HEIGHT = HEIGHT * 1.2;
+    // 3D Engine constants (ENLARGED)
+    const FOV = 700;
+    const HELIX_RADIUS = 180; 
+    const HELIX_HEIGHT = HEIGHT * 1.3;
     const CENTER_Y = HEIGHT / 2;
     const CENTER_X = WIDTH / 2;
     
@@ -37,41 +37,45 @@ export default function FHEPipelineViz() {
 
     const hexStrings = ['0xa7f3...', '0xe2b1...', '0xc8e3...', '0x9d4c...', '0x1bf6...', '0xf4a2...', '0x33d1...'];
 
+    // Few distinct colors from the theme
+    const themeColors = [
+      { r: 45, g: 212, b: 191 }, // Mint
+      { r: 15, g: 110, b: 106 }, // Deep Teal
+      { r: 59, g: 130, b: 246 }, // Blue accent
+    ];
+
     // Generate Point Cloud
     const generateDNA = () => {
       particles = [];
       const numTwists = 2.5;
-      const pointsPerTwist = 1200;
+      const pointsPerTwist = 1800; // Increased density for larger gene
       const totalPoints = numTwists * pointsPerTwist;
 
       for (let i = 0; i < totalPoints; i++) {
         const t = (i / totalPoints) * Math.PI * 2 * numTwists;
         const y = (i / totalPoints) * HELIX_HEIGHT - (HELIX_HEIGHT / 2);
         
-        // Two strands (0 and PI phase offset)
         [0, Math.PI].forEach((phaseOffset) => {
           // Add noise/thickness to the strand
-          const noiseR = Math.random() * 20; 
+          const noiseR = Math.random() * 30; // Wider spread
           const noiseTheta = Math.random() * Math.PI * 2;
           const r = HELIX_RADIUS + Math.cos(noiseTheta) * noiseR;
           
           const x = Math.sin(t + phaseOffset) * r;
           const z = Math.cos(t + phaseOffset) * r;
           
-          // Color based on height and strand
-          const colorIntensity = Math.random() * 0.5 + 0.5;
-          const isMint = Math.random() > 0.5;
-          const color = isMint ? `rgba(45, 212, 191, ${colorIntensity})` : `rgba(15, 110, 106, ${colorIntensity})`;
+          // Select one of the few colors
+          const colorObj = themeColors[Math.floor(Math.random() * themeColors.length)];
           
           particles.push({
             origX: x, origY: y, origZ: z,
             x, y, z,
-            size: Math.random() * 1.5 + 0.5,
-            color,
+            size: Math.random() * 2 + 1, // Slightly larger particles
+            colorObj,
             isAttached: true,
             velocity: { x: 0, y: 0, z: 0 },
             hexText: null,
-            opacity: 1
+            opacity: Math.random() * 0.7 + 0.3 // Base opacity
           });
         });
       }
@@ -87,14 +91,12 @@ export default function FHEPipelineViz() {
         const x2 = Math.sin(t + Math.PI) * HELIX_RADIUS;
         const z2 = Math.cos(t + Math.PI) * HELIX_RADIUS;
         
-        // Populate rung with dense particles
-        const rungDensity = 50;
+        const rungDensity = 80;
         for (let j = 0; j <= rungDensity; j++) {
           const f = j / rungDensity;
-          // Add noise to rung
-          const nx = (Math.random() - 0.5) * 10;
-          const ny = (Math.random() - 0.5) * 10;
-          const nz = (Math.random() - 0.5) * 10;
+          const nx = (Math.random() - 0.5) * 15;
+          const ny = (Math.random() - 0.5) * 15;
+          const nz = (Math.random() - 0.5) * 15;
 
           const px = x1 + (x2 - x1) * f + nx;
           const pz = z1 + (z2 - z1) * f + nz;
@@ -103,12 +105,12 @@ export default function FHEPipelineViz() {
           particles.push({
             origX: px, origY: py, origZ: pz,
             x: px, y: py, z: pz,
-            size: Math.random() * 1.5 + 0.5,
-            color: `rgba(45, 212, 191, ${Math.random() * 0.6 + 0.2})`, // Mint glow
+            size: Math.random() * 2 + 0.5,
+            colorObj: themeColors[0], // Mint glow for rungs
             isAttached: true,
             velocity: { x: 0, y: 0, z: 0 },
             hexText: null,
-            opacity: 1
+            opacity: Math.random() * 0.8 + 0.2
           });
         }
       }
@@ -120,94 +122,96 @@ export default function FHEPipelineViz() {
     const render = () => {
       ctx.clearRect(0, 0, WIDTH, HEIGHT);
       
-      // Update rotation
+      // ADD EFFECTS: Use screen blending for a glowing look
+      ctx.globalCompositeOperation = 'screen';
+      
       const currentSpeed = smoothScrollSpeed.get() || 0.005;
       rotation += currentSpeed;
       
       const cos = Math.cos(rotation);
       const sin = Math.sin(rotation);
 
-      // Disintegration logic: randomly detach a particle
-      if (Math.random() < 0.2) {
+      // Disintegration logic
+      if (Math.random() < 0.15) {
         const attached = particles.filter(p => p.isAttached);
         if (attached.length > 0) {
           const p = attached[Math.floor(Math.random() * attached.length)];
           p.isAttached = false;
           // Drift outward from the center
-          const driftSpeed = 0.5;
+          const driftSpeed = 0.8;
           p.velocity = {
             x: (p.origX / HELIX_RADIUS) * driftSpeed + (Math.random() - 0.5),
-            y: (Math.random() - 0.5) * 2 - 1, // Mostly drift up
+            y: (Math.random() - 0.5) * 3 - 1.5,
             z: (p.origZ / HELIX_RADIUS) * driftSpeed + (Math.random() - 0.5)
           };
           p.hexText = hexStrings[Math.floor(Math.random() * hexStrings.length)];
-          p.size = 10; // Font size
+          p.size = 12; // Larger text
         }
       }
 
-      // Sort by Z for proper rendering order (painter's algorithm)
-      // First project all points
+      // Sort by Z
       particles.forEach(p => {
         if (p.isAttached) {
-          // Rotate original positions
           p.x = p.origX * cos - p.origZ * sin;
           p.z = p.origZ * cos + p.origX * sin;
           p.y = p.origY;
         } else {
-          // Floating particles maintain their own rotation/position space but drift
           p.x += p.velocity.x;
           p.y += p.velocity.y;
           p.z += p.velocity.z;
-          p.opacity -= 0.002; // Fade out over time
+          p.opacity -= 0.003; 
           if (p.opacity < 0) {
-             // Reset to attached to keep the loop going indefinitely
              p.isAttached = true;
-             p.opacity = 1;
+             p.opacity = Math.random() * 0.7 + 0.3;
              p.hexText = null;
-             p.size = Math.random() * 1.5 + 0.5;
+             p.size = Math.random() * 2 + 1;
           }
         }
       });
 
-      // Z-sort
       particles.sort((a, b) => b.z - a.z);
 
       // Draw
       particles.forEach(p => {
         if (p.opacity <= 0) return;
 
-        const perspective = FOV / (FOV + p.z + 400); // push back on Z
-        
-        // Culling behind camera
+        const perspective = FOV / (FOV + p.z + 400); 
         if (perspective < 0) return;
 
         const screenX = p.x * perspective + CENTER_X;
         const screenY = p.y * perspective + CENTER_Y;
         const projectedSize = p.size * perspective;
 
+        const alpha = Math.min(1, Math.max(0.05, perspective * p.opacity));
+        const colorStr = `rgba(${p.colorObj.r}, ${p.colorObj.g}, ${p.colorObj.b}, ${alpha})`;
+
         if (p.isAttached) {
           ctx.beginPath();
           ctx.arc(screenX, screenY, projectedSize, 0, Math.PI * 2);
-          ctx.fillStyle = p.color;
-          ctx.globalAlpha = Math.min(1, Math.max(0.1, perspective)); // Fade in distance
+          ctx.fillStyle = colorStr;
           ctx.fill();
+          
+          // ADD EFFECTS: Add a secondary glow for larger particles
+          if (projectedSize > 2 && Math.random() > 0.8) {
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, projectedSize * 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${p.colorObj.r}, ${p.colorObj.g}, ${p.colorObj.b}, ${alpha * 0.3})`;
+            ctx.fill();
+          }
         } else if (p.hexText) {
-          ctx.font = `${Math.max(4, projectedSize)}px var(--font-mono, monospace)`;
-          ctx.fillStyle = `rgba(45, 212, 191, ${p.opacity})`;
-          ctx.globalAlpha = p.opacity;
+          ctx.font = `${Math.max(6, projectedSize)}px var(--font-mono, monospace)`;
+          ctx.fillStyle = colorStr;
           ctx.fillText(p.hexText, screenX, screenY);
         }
       });
 
-      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over'; // Reset for next frame
       animId = requestAnimationFrame(render);
     };
 
     render();
 
-    return () => {
-      cancelAnimationFrame(animId);
-    };
+    return () => cancelAnimationFrame(animId);
   }, [smoothScrollSpeed]);
 
   return (
@@ -218,6 +222,9 @@ export default function FHEPipelineViz() {
           width: 700,
           height: 900,
           pointerEvents: 'none',
+          // TILT THE GENE LEFT BY 15 DEGREES
+          transform: 'rotate(-15deg) scale(1.15)',
+          transformOrigin: 'center center',
         }}
       />
     </div>
