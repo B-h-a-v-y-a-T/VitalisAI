@@ -62,9 +62,16 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
   let globalIndex = 0;
 
   return (
-    <span ref={containerRef} className={className} style={style}>
+    <span 
+      ref={containerRef} 
+      className={className} 
+      style={{ 
+        ...style,
+        display: style?.display || 'inline'
+      }}
+    >
       {words.map((word, wIdx) => (
-        <span key={wIdx} style={{ whiteSpace: 'nowrap' }}>
+        <span key={wIdx} style={{ whiteSpace: 'nowrap', display: 'inline' }}>
           {word.split('').map((char, cIdx) => {
             const currentIndex = globalIndex++;
             return (
@@ -72,11 +79,19 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
                 key={cIdx} 
                 style={{ 
                   display: 'inline-grid', 
-                  gridTemplateColumns: 'min-content'
+                  gridTemplateColumns: 'min-content',
+                  lineHeight: 'inherit',
+                  verticalAlign: 'baseline'
                 }}
               >
                 {/* Invisible character strictly locks the layout track size */}
-                <span style={{ visibility: 'hidden', gridArea: '1/1' }}>
+                <span 
+                  style={{ 
+                    visibility: 'hidden', 
+                    gridArea: '1/1',
+                    lineHeight: 'inherit'
+                  }}
+                >
                   {char}
                 </span>
                 
@@ -93,7 +108,8 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
                     overflow: 'visible',
                     // Explicit inheritance to guarantee WebKit gradient rendering
                     color: 'inherit',
-                    WebkitTextFillColor: 'inherit'
+                    WebkitTextFillColor: 'inherit',
+                    lineHeight: 'inherit'
                   }}
                 >
                   {/* Initial state */}
