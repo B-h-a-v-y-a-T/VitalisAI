@@ -139,14 +139,14 @@ export default function FHEPipelineViz() {
       mouseY.current += (targetMouseY.current - mouseY.current) * 0.05;
 
       // Random detachment (Disintegration into hex strings)
-      if (Math.random() < 0.15) {
+      if (Math.random() < 0.05) { // Reduced detach rate
         const attached = particles.filter(p => p.isAttached);
         if (attached.length > 0) {
           const p = attached[Math.floor(Math.random() * attached.length)];
           p.isAttached = false;
           // Calculate outward radial direction to push text to the outer sides
           const dist = Math.sqrt(p.x * p.x + p.z * p.z) || 1;
-          const dirX = p.x / dist;
+          const dirX = Math.max(0, p.x / dist); // Restrict leftward movement
           const dirZ = p.z / dist;
 
           p.velocity = {
