@@ -356,6 +356,10 @@ input, textarea, select {
   border-radius: var(--radius-lg);
 }
 
+.card-glow {
+  box-shadow: 0 0 60px rgba(45, 212, 191, 0.15), inset 0 0 20px rgba(45, 212, 191, 0.05);
+}
+
 /* ─── Buttons ─── */
 .btn {
   display: inline-flex;
@@ -488,17 +492,18 @@ input, textarea, select {
   width: 100%;
   padding: var(--space-3) var(--space-4);
   background: var(--input-bg);
-  border: 1px solid var(--input-border);
-  border-radius: var(--radius-md);
+  border: 1px solid rgba(45, 212, 191, 0.15);
+  border-radius: 16px;
   font-size: var(--text-sm);
   color: var(--text-primary);
   transition: all var(--transition-base);
   outline: none;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.05), inset 0 0 5px rgba(45, 212, 191, 0.02);
 }
 
 .input:focus {
-  border-color: var(--mint);
-  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.1);
+  border-color: rgba(45, 212, 191, 0.5);
+  box-shadow: 0 0 20px rgba(45, 212, 191, 0.25), inset 0 0 10px rgba(45, 212, 191, 0.1);
 }
 
 .input::placeholder {

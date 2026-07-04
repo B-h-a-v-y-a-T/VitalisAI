@@ -4,6 +4,8 @@ import { Settings as SettingsIcon, Palette, Wallet, Bell, Building2, Key, Shield
 import GlassCard from '../../components/shared/GlassCard';
 import GradientButton from '../../components/shared/GradientButton';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
+import Setup2FAModal from '../../components/app/Setup2FAModal';
 
 const tabs = [
   { id: 'theme', icon: Palette, label: 'Theme' },
@@ -15,8 +17,10 @@ const tabs = [
 ];
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState('theme');
+  const [activeTab, setActiveTab] = useState('security'); // defaulting to security to see changes immediately
+  const [is2FAModalOpen, setIs2FAModalOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { is2FAEnabled, disable2FA } = useAuth();
 
   return (
     <div>
@@ -243,8 +247,33 @@ export default function SettingsPage() {
           {activeTab === 'security' && (
             <GlassCard padding="32px">
               <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 24 }}>Security Settings</h3>
+              
+              {/* 2FA Row */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '16px 0',
+                borderBottom: '1px solid var(--border-secondary)',
+              }}>
+                <div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>Two-Factor Authentication</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>Add an extra layer of security</div>
+                </div>
+                {is2FAEnabled ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--mint)' }}>Enabled</span>
+                    <button onClick={disable2FA} style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--error)', padding: '6px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--error-bg)' }}>Disable</button>
+                  </div>
+                ) : (
+                  <button onClick={() => setIs2FAModalOpen(true)} style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', background: 'var(--mint)', padding: '6px 12px', borderRadius: 'var(--radius-sm)' }}>
+                    Set Up
+                  </button>
+                )}
+              </div>
+
+              {/* Other Static Rows */}
               {[
-                { label: 'Two-Factor Authentication', desc: 'Add an extra layer of security', status: 'Enabled' },
                 { label: 'Session Timeout', desc: 'Auto-logout after inactivity', status: '30 minutes' },
                 { label: 'IP Whitelisting', desc: 'Restrict access to specific IPs', status: 'Configured' },
                 { label: 'Audit Log Retention', desc: 'How long audit logs are kept', status: '365 days' },
@@ -254,7 +283,7 @@ export default function SettingsPage() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '16px 0',
-                  borderBottom: i < 3 ? '1px solid var(--border-secondary)' : 'none',
+                  borderBottom: i < 2 ? '1px solid var(--border-secondary)' : 'none',
                 }}>
                   <div>
                     <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{item.label}</div>
@@ -267,6 +296,7 @@ export default function SettingsPage() {
           )}
         </motion.div>
       </div>
+      <Setup2FAModal isOpen={is2FAModalOpen} onClose={() => setIs2FAModalOpen(false)} />
     </div>
   );
 }

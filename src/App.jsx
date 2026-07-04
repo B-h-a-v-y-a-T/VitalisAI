@@ -1,7 +1,10 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { DatasetProvider } from './context/DatasetContext';
+import { AuthProvider } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 import AppLayout from './pages/AppLayout';
 import Dashboard from './pages/app/Dashboard';
 import DatasetUpload from './pages/app/DatasetUpload';
@@ -19,27 +22,33 @@ export default function App() {
   return (
     <ThemeProvider>
       <DatasetProvider>
-        <BrowserRouter>
-          <Routes>
-          {/* Landing Page */}
-          <Route path="/" element={<LandingPage />} />
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+            {/* Landing Page */}
+            <Route path="/" element={<LandingPage />} />
+            
+            {/* Auth Pages */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
 
-          {/* Application */}
-          <Route path="/app" element={<AppLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="upload" element={<DatasetUpload />} />
-            <Route path="registry" element={<DatasetRegistry />} />
-            <Route path="matching" element={<MatchingEngine />} />
-            <Route path="trials" element={<ClinicalTrials />} />
-            <Route path="results" element={<Results />} />
-            <Route path="demo" element={<PlaintextVsEncrypted />} />
-            <Route path="audit" element={<AuditLogs />} />
-            <Route path="access" element={<AccessControl />} />
-            <Route path="recruiter" element={<RecruiterView />} />
-            <Route path="settings" element={<SettingsPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+            {/* Application */}
+            <Route path="/app" element={<AppLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="upload" element={<DatasetUpload />} />
+              <Route path="registry" element={<DatasetRegistry />} />
+              <Route path="matching" element={<MatchingEngine />} />
+              <Route path="trials" element={<ClinicalTrials />} />
+              <Route path="results" element={<Results />} />
+              <Route path="demo" element={<PlaintextVsEncrypted />} />
+              <Route path="audit" element={<AuditLogs />} />
+              <Route path="access" element={<AccessControl />} />
+              <Route path="recruiter" element={<RecruiterView />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+        </AuthProvider>
       </DatasetProvider>
     </ThemeProvider>
   );

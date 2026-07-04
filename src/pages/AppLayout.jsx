@@ -1,14 +1,24 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Outlet, Navigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/app/Sidebar';
 import TopBar from '../components/app/TopBar';
+import { useAuth } from '../context/AuthContext';
+import TwoFactorPrompt from '../components/app/TwoFactorPrompt';
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const { isAuthenticated, is2FAVerified, isLoading } = useAuth();
+
+  if (isLoading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      {/* 2FA Intercept */}
+      <AnimatePresence>
+        {!is2FAVerified && <TwoFactorPrompt />}
+      </AnimatePresence>
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
       <motion.div
