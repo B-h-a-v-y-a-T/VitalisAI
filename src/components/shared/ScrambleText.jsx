@@ -59,6 +59,26 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
     };
   }, [text, delay, duration]);
 
-  // Render an empty span, letting the ref take over its textContent
-  return <span ref={spanRef} className={className} style={style}></span>;
+  return (
+    <span style={{ position: 'relative', display: 'inline-flex', ...style }} className={className}>
+      {/* Invisible placeholder to lock the exact final width and height */}
+      <span style={{ visibility: 'hidden' }}>{text}</span>
+      {/* Absolutely positioned scrambling text that won't affect layout width */}
+      <span 
+        ref={spanRef} 
+        style={{ 
+          position: 'absolute', 
+          inset: 0, 
+          display: 'flex', 
+          alignItems: 'center',
+          background: 'inherit',
+          backgroundImage: 'inherit',
+          WebkitBackgroundClip: 'inherit',
+          WebkitTextFillColor: 'inherit',
+          color: 'inherit',
+          whiteSpace: 'nowrap'
+        }} 
+      />
+    </span>
+  );
 }
