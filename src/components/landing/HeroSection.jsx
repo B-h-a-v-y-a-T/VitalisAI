@@ -4,6 +4,7 @@ import { ArrowRight, Shield, Lock, Cpu } from 'lucide-react';
 import FHEPipelineViz from './FHEPipelineViz';
 import GradientButton from '../shared/GradientButton';
 import ParticleField from '../shared/ParticleField';
+import ScrambleText from '../shared/ScrambleText';
 
 export default function HeroSection() {
   return (
@@ -11,9 +12,9 @@ export default function HeroSection() {
       position: 'relative',
       minHeight: '100vh',
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'flex-start', // Shift up into the available top space
       overflow: 'hidden',
-      paddingTop: 100,
+      paddingTop: 140, // Reduced from vertical center to push everything up
       paddingBottom: 80,
     }}>
       {/* Background Effects */}
@@ -29,7 +30,7 @@ export default function HeroSection() {
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: '60px',
-        alignItems: 'center',
+        alignItems: 'flex-start', // Top-align the grid columns
         position: 'relative',
         zIndex: 2,
       }}>
@@ -38,6 +39,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
+          style={{ paddingTop: 40 }} // Slight padding to balance visual weight against DNA
         >
           {/* Badge */}
           <motion.div
@@ -62,7 +64,7 @@ export default function HeroSection() {
             Powered by Fully Homomorphic Encryption
           </motion.div>
 
-          {/* Headline */}
+          {/* Headline with Encryption Animation */}
           <h1 style={{
             fontFamily: 'var(--font-display)',
             fontSize: 'clamp(2.5rem, 5vw, 3.75rem)',
@@ -72,9 +74,9 @@ export default function HeroSection() {
             color: 'var(--text-primary)',
             marginBottom: 24,
           }}>
-            Clinical Trial Matching.{' '}
+            <ScrambleText text="Clinical Trial Matching." delay={100} duration={1200} /> <br />
             <span className="text-gradient">
-              Zero Data Exposure.
+              <ScrambleText text="Zero Data Exposure." delay={600} duration={1500} />
             </span>
           </h1>
 

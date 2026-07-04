@@ -4,11 +4,11 @@ import { useScroll, useTransform, useSpring } from 'framer-motion';
 export default function FHEPipelineViz() {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
-  
+
   // Interaction & Scroll State
   const { scrollYProgress } = useScroll();
   const smoothScrollPhase = useSpring(scrollYProgress, { damping: 30, stiffness: 100 });
-  
+
   // Parallax
   const mouseX = useRef(0);
   const mouseY = useRef(0);
@@ -21,7 +21,7 @@ export default function FHEPipelineViz() {
   const CENTER_X = WIDTH / 2;
   const CENTER_Y = HEIGHT / 2;
   const HELIX_RADIUS = 280; // Large enough to fill the space
-  
+
   const hexStrings = ['0xa7f3...', '0xe2b1...', '0xc8e3...', '0x9d4c...', '0x1bf6...', '0xf4a2...', '0x33d1...'];
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function FHEPipelineViz() {
       targetMouseX.current = x * 30;
       targetMouseY.current = y * 30;
     };
-    
+
     window.addEventListener('mousemove', handleMouseMove);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
@@ -68,21 +68,17 @@ export default function FHEPipelineViz() {
     // Initialize DNA particles
     const initDNA = () => {
       particles = [];
-      const numStrandParticles = 3000; // Total for both strands
+      const numStrandParticles = 3000;
       const numTwists = 2.5;
-      
-      const constantSpeed = 0.003; // ALL particles must move at the same speed so strands don't break
 
-      // 1. Strand Particles
-      // We distribute them evenly so there are no gaps
+      // 1. Strand Particles (Traverse along the curve)
       for (let i = 0; i < numStrandParticles; i++) {
-        const t = (i / (numStrandParticles / 2)) * Math.PI * 2 * numTwists;
-        const strand = i < (numStrandParticles / 2) ? 0 : Math.PI; // Phase offset for the 2 strands
-        
-        // Very small noise for texture, keeps width constant
-        const noiseRadius = (Math.random() - 0.5) * 6; 
-        const noiseY = (Math.random() - 0.5) * 4;
-        
+        const t = Math.random() * Math.PI * 2 * numTwists;
+        const strand = Math.random() > 0.5 ? 0 : Math.PI; // Phase offset
+
+        // Noise for organic ribbon width
+        const noiseRadius = (Math.random() - 0.5) * 40;
+
         const randColor = Math.random();
         let colorObj = colors[0]; // 50% Deep Teal
         if (randColor > 0.5 && randColor <= 0.85) colorObj = colors[1]; // 35% Medium Teal
@@ -93,33 +89,32 @@ export default function FHEPipelineViz() {
           t,
           strandOffset: strand,
           noiseRadius,
-          noiseY,
-          speed: constantSpeed, // Constant speed prevents clumping/gaps
-          size: Math.random() * 2.0 + 1.0, 
+          speed: (Math.random() * 0.01) + 0.005, // Speed of traversal
+          size: Math.random() * 2.0 + 1.0, // Increased size for visibility
           colorObj,
           isAttached: true,
           velocity: { x: 0, y: 0, z: 0 },
-          opacity: Math.random() * 0.5 + 0.5
+          opacity: Math.random() * 0.5 + 0.5 // Higher base opacity
         });
       }
 
-      // 2. Rung Particles (Horizontal bridges)
-      const numRungs = 45; // More regular base-pair spacing
+      // 2. Rung Particles (Horizontal bridges connecting strands)
+      const numRungs = 20; // Distinct, spaced-out ladder steps
       for (let i = 0; i < numRungs; i++) {
         const rungT = (i / numRungs) * Math.PI * 2 * numTwists;
-        for (let j = 0; j < 60; j++) {
+        for (let j = 0; j < 100; j++) { // High density for solid lines
           particles.push({
             type: 'rung',
-            t: rungT, // Rungs must have a 't' to move perfectly in sync with the strands
-            fraction: (j / 60) + (Math.random() * 0.02), // Evenly distributed across the rung
-            speed: constantSpeed, // MUST match strand speed exactly!
-            noiseY: (Math.random() - 0.5) * 2, // Tight sharp lines
+            t: rungT,
+            fraction: Math.random(), // Position along the rung (0 to 1)
+            speed: (Math.random() - 0.5) * 0.005, // Slight back and forth
+            noiseY: (Math.random() - 0.5) * 2, // VERY tight lines, no blurry scatter
             noiseZ: (Math.random() - 0.5) * 2,
             size: Math.random() * 1.5 + 0.5, // Crisp particles
-            colorObj: colors[1], // Medium Teal
+            colorObj: colors[1], // Medium Teal for good contrast
             isAttached: true,
             velocity: { x: 0, y: 0, z: 0 },
-            opacity: Math.random() * 0.6 + 0.4
+            opacity: Math.random() * 0.6 + 0.4 // Highly noticeable/opaque
           });
         }
       }
@@ -130,12 +125,12 @@ export default function FHEPipelineViz() {
     const renderCanvas = () => {
       ctx.clearRect(0, 0, WIDTH, HEIGHT);
       ctx.globalCompositeOperation = 'screen';
-      
+
       // Calculate rotation (time + scroll)
       baseRotation += 0.002;
       const scrollRot = smoothScrollPhase.get() * Math.PI;
       const totalRotation = baseRotation + scrollRot;
-      
+
       const cos = Math.cos(totalRotation);
       const sin = Math.sin(totalRotation);
 
@@ -160,8 +155,8 @@ export default function FHEPipelineViz() {
             z: dirZ * (Math.random() * 1.5 + 1.5)
           };
           p.hexText = hexStrings[Math.floor(Math.random() * hexStrings.length)];
-          p.size = 18; 
-          p.colorObj = colors[0]; 
+          p.size = 18; // Increased font size for text
+          p.colorObj = colors[0]; // Force Deep Teal for high readability
         }
       }
 
@@ -177,23 +172,26 @@ export default function FHEPipelineViz() {
         let origX, origY, origZ;
 
         if (p.isAttached) {
-          // BOTH strands and rungs must traverse `t` to stay mathematically connected
-          p.t += p.speed;
-          if (p.t > Math.PI * 2 * numTwists) p.t = 0; // Wrap around
-
           if (p.type === 'strand') {
+            // Move along the strand
+            p.t += p.speed;
+            if (p.t > Math.PI * 2 * numTwists) p.t = 0; // Wrap around
+
             const r = HELIX_RADIUS + p.noiseRadius;
             origX = Math.sin(p.t + p.strandOffset) * r;
             origZ = Math.cos(p.t + p.strandOffset) * r;
-            origY = p.t * heightScale - (HEIGHT * 1.2 / 2) + p.noiseY;
+            origY = p.t * heightScale - (HEIGHT * 1.2 / 2);
           } else if (p.type === 'rung') {
-            // Rung stays exactly between the two strands at its current `t`
-            const r = HELIX_RADIUS; // Rungs connect the perfectly circular boundary
+            // Move along the rung
+            p.fraction += p.speed;
+            if (p.fraction > 1 || p.fraction < 0) p.speed *= -1; // Bounce
+
+            const r = HELIX_RADIUS;
             const x1 = Math.sin(p.t) * r;
             const z1 = Math.cos(p.t) * r;
             const x2 = Math.sin(p.t + Math.PI) * r;
             const z2 = Math.cos(p.t + Math.PI) * r;
-            
+
             origX = x1 + (x2 - x1) * p.fraction;
             origZ = z1 + (z2 - z1) * p.fraction + p.noiseZ;
             origY = p.t * heightScale - (HEIGHT * 1.2 / 2) + p.noiseY;
@@ -203,7 +201,7 @@ export default function FHEPipelineViz() {
           p.x = origX * cos - origZ * sin;
           p.z = origZ * cos + origX * sin;
           p.y = origY;
-          
+
           // Apply mouse parallax locally to 3D space
           p.x += mouseX.current;
           p.y += mouseY.current;
@@ -214,7 +212,7 @@ export default function FHEPipelineViz() {
           p.y += p.velocity.y;
           p.z += p.velocity.z;
           p.opacity -= 0.003; // Dissolve slightly slower
-          
+
           if (p.opacity < 0) {
             // Re-attach to maintain density
             p.isAttached = true;
@@ -242,7 +240,7 @@ export default function FHEPipelineViz() {
         const projectedSize = p.size * perspective;
 
         // Make floating text much darker and more opaque
-        const baseAlpha = p.hexText ? p.opacity * 1.5 : p.opacity; 
+        const baseAlpha = p.hexText ? p.opacity * 1.5 : p.opacity;
         const alpha = Math.min(1, Math.max(0.05, perspective * baseAlpha));
         const colorStr = `rgba(${p.colorObj.r}, ${p.colorObj.g}, ${p.colorObj.b}, ${alpha})`;
 
@@ -278,8 +276,8 @@ export default function FHEPipelineViz() {
   return (
     <div ref={containerRef} style={{ position: 'relative', width: WIDTH, height: HEIGHT, margin: '0 auto' }}>
       {/* CANVAS BACKGROUND (DNA Helix) */}
-      <canvas 
-        ref={canvasRef} 
+      <canvas
+        ref={canvasRef}
         style={{
           position: 'absolute',
           top: 0, left: '15%',
