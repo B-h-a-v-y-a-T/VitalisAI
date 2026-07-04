@@ -207,6 +207,7 @@ export default function FHEPipelineViz() {
             // Re-attach to maintain density
             p.isAttached = true;
             p.opacity = Math.random() * 0.7 + 0.3;
+            p.size = Math.random() * 1.5 + 0.5; // FIX: Reset size back to normal!
             p.hexText = null;
             if (p.type === 'strand') p.t = Math.random() * Math.PI * 2 * numTwists;
           }
@@ -259,7 +260,7 @@ export default function FHEPipelineViz() {
         ref={canvasRef} 
         style={{
           position: 'absolute',
-          top: 0, left: 0,
+          top: 0, left: '15%',
           width: WIDTH, height: HEIGHT,
           pointerEvents: 'none',
           zIndex: 1,
