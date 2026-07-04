@@ -13,7 +13,6 @@ export default function HeroSection() {
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'flex-start', // Shift up into the available top space
-      overflow: 'hidden',
       paddingTop: 100, // Reduced to push everything up even more
       paddingBottom: 80,
     }}>
@@ -149,7 +148,6 @@ export default function HeroSection() {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            paddingTop: '120px', // Shift DNA down enough so the rotated top curve isn't clipped
           }}
         >
           <FHEPipelineViz />
