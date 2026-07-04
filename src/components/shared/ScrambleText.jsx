@@ -3,49 +3,43 @@ import { useEffect, useRef } from 'react';
 const CHARS = '0123456789ABCDEF!@#$%^&*';
 
 export default function ScrambleText({ text, delay = 0, duration = 1500, className, style }) {
-  const spanRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     let timeout;
     let animFrame;
     let startTime;
-    
-    // Set initial scrambled text immediately without React state
-    if (spanRef.current) {
-      spanRef.current.textContent = text.replace(/[a-zA-Z0-9]/g, () => CHARS[Math.floor(Math.random() * CHARS.length)]);
-    }
 
+    const charsElements = containerRef.current ? containerRef.current.querySelectorAll('.scramble-char') : [];
+    
     const animate = () => {
       if (!startTime) startTime = Date.now();
       const elapsed = Date.now() - startTime;
       const progress = Math.min(1, elapsed / duration);
 
-      if (!spanRef.current) return;
+      if (charsElements.length === 0) return;
 
       if (progress === 1) {
-        spanRef.current.textContent = text;
+        charsElements.forEach((el) => {
+          el.textContent = el.getAttribute('data-char');
+        });
         return;
       }
 
-      let scrambled = '';
-      for (let i = 0; i < text.length; i++) {
+      charsElements.forEach((el) => {
+        const char = el.getAttribute('data-char');
+        const i = parseInt(el.getAttribute('data-index'), 10);
         const revealThreshold = i / text.length;
-        
-        if (text[i] === ' ') {
-          scrambled += ' ';
-        } else if (progress > revealThreshold + Math.random() * 0.3) {
-          scrambled += text[i];
+
+        if (progress > revealThreshold + Math.random() * 0.3) {
+          el.textContent = char;
         } else {
-          scrambled += CHARS[Math.floor(Math.random() * CHARS.length)];
+          el.textContent = CHARS[Math.floor(Math.random() * CHARS.length)];
         }
-      }
-      
-      spanRef.current.textContent = scrambled;
-      
-      // Throttle the scramble effect slightly for visual aesthetics (e.g. updating every ~30-50ms)
-      // but keeping it in requestAnimationFrame for smooth scheduling
+      });
+
       animFrame = requestAnimationFrame(() => {
-        setTimeout(animate, 30);
+        setTimeout(animate, 40);
       });
     };
 
@@ -59,26 +53,44 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
     };
   }, [text, delay, duration]);
 
+  const words = text.split(' ');
+  let globalIndex = 0;
+
   return (
-    <span style={{ position: 'relative', display: 'inline-flex', ...style }} className={className}>
-      {/* Invisible placeholder to lock the exact final width and height */}
-      <span style={{ visibility: 'hidden' }}>{text}</span>
-      {/* Absolutely positioned scrambling text that won't affect layout width */}
-      <span 
-        ref={spanRef} 
-        style={{ 
-          position: 'absolute', 
-          inset: 0, 
-          display: 'flex', 
-          alignItems: 'center',
-          background: 'inherit',
-          backgroundImage: 'inherit',
-          WebkitBackgroundClip: 'inherit',
-          WebkitTextFillColor: 'inherit',
-          color: 'inherit',
-          whiteSpace: 'nowrap'
-        }} 
-      />
+    <span ref={containerRef} className={className} style={style}>
+      {words.map((word, wIdx) => (
+        <span key={wIdx} style={{ whiteSpace: 'nowrap' }}>
+          {word.split('').map((char, cIdx) => {
+            const currentIndex = globalIndex++;
+            return (
+              <span key={cIdx} style={{ position: 'relative', display: 'inline-block' }}>
+                <span style={{ visibility: 'hidden' }}>{char}</span>
+                <span 
+                  className="scramble-char" 
+                  data-char={char} 
+                  data-index={currentIndex}
+                  style={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    left: '50%', 
+                    transform: 'translateX(-50%)',
+                    color: 'inherit',
+                    WebkitTextFillColor: 'inherit',
+                    background: 'inherit',
+                    backgroundImage: 'inherit',
+                    WebkitBackgroundClip: 'inherit'
+                  }}
+                >
+                  {CHARS[Math.floor(Math.random() * CHARS.length)]}
+                </span>
+              </span>
+            );
+          })}
+          {wIdx < words.length - 1 && (
+            <span style={{ display: 'inline-block', width: '0.25em' }}> </span>
+          )}
+        </span>
+      ))}
     </span>
   );
 }
