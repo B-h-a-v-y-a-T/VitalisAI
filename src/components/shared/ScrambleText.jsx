@@ -1,10 +1,18 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 
 // Curated narrow/medium characters to prevent wide layout bleeding
 const CHARS = '0123456789/*-+|<>[]{}?!';
 
 export default function ScrambleText({ text, delay = 0, duration = 1500, className = '', style }) {
   const containerRef = useRef(null);
+  const [isFinished, setIsFinished] = useState(false);
+
+  // Generate a stable initial scramble state that survives React re-renders (e.g. scrolling)
+  const initialScramble = useMemo(() => {
+    return text.split('').map(char => 
+      char === ' ' ? ' ' : CHARS[Math.floor(Math.random() * CHARS.length)]
+    );
+  }, [text]);
 
   useEffect(() => {
     let timeout;
@@ -12,6 +20,7 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
     let startTime;
     let lastUpdate = 0;
 
+    setIsFinished(false);
     const charElements = containerRef.current ? containerRef.current.querySelectorAll('.scramble-char') : [];
 
     const animate = () => {
@@ -26,6 +35,7 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
         charElements.forEach((el) => {
           el.textContent = el.getAttribute('data-char');
         });
+        setIsFinished(true); // Hand control back to React for final stable state
         return;
       }
 
@@ -112,8 +122,8 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
                     lineHeight: 'inherit'
                   }}
                 >
-                  {/* Initial state */}
-                  {CHARS[Math.floor(Math.random() * CHARS.length)]}
+                  {/* Stable React state prevents re-render thrashing before animation finishes */}
+                  {isFinished ? char : initialScramble[currentIndex]}
                 </span>
               </span>
             );
