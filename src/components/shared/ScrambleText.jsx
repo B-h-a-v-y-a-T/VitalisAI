@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-// Using narrower characters to prevent line wrapping overflow and layout shift
+// Curated narrow/medium characters to minimize width discrepancies
 const CHARS = '0123456789/*-+|<>[]{}?!';
 
 export default function ScrambleText({ text, delay = 0, duration = 1500, className = '', style }) {
@@ -15,7 +15,6 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
     const overlayElements = containerRef.current ? containerRef.current.querySelectorAll('.scramble-overlay') : [];
     const originalElements = containerRef.current ? containerRef.current.querySelectorAll('.scramble-original') : [];
     
-    // Initialize
     overlayElements.forEach(el => el.style.opacity = 1);
     originalElements.forEach(el => el.style.opacity = 0);
 
@@ -33,7 +32,7 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
         return;
       }
 
-      // Throttle updates for smooth aesthetic
+      // Throttle updates for smooth aesthetic (~30fps)
       if (now - lastUpdate > 30) {
         overlayElements.forEach((el) => {
           const word = el.getAttribute('data-word');
@@ -73,32 +72,52 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
     <span ref={containerRef} className={className} style={style}>
       {words.map((word, wIdx) => {
         const offset = currentOffset;
-        currentOffset += word.length + 1;
+        currentOffset += word.length + 1; // +1 for the space
 
         return (
           <span key={wIdx}>
-            <span style={{ position: 'relative', display: 'inline-block' }}>
-              <span className="scramble-original" style={{ opacity: 0, transition: 'opacity 0.1s' }}>
+            <span 
+              style={{ 
+                display: 'inline-grid', 
+                // Force grid column to the exact width of the original word
+                gridTemplateColumns: 'min-content' 
+              }}
+            >
+              {/* Invisible original word sets the permanent layout size */}
+              <span 
+                className="scramble-original" 
+                style={{ 
+                  visibility: 'hidden', 
+                  gridArea: '1/1', 
+                  opacity: 0, 
+                  transition: 'opacity 0.1s' 
+                }}
+              >
                 {word}
               </span>
+              
+              {/* Normal-flow overlay for perfect gradient rendering */}
               <span 
                 className="scramble-overlay" 
                 data-word={word} 
                 data-offset={offset}
                 style={{ 
-                  position: 'absolute', 
-                  inset: 0,
+                  gridArea: '1/1', 
+                  placeSelf: 'center',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   whiteSpace: 'nowrap',
-                  color: 'inherit',
-                  WebkitTextFillColor: 'inherit',
+                  // Prevent the scrambled text from expanding the grid cell or overlapping
+                  maxWidth: '100%',
+                  overflow: 'hidden'
                 }}
               >
+                {/* Initial random state */}
                 {word.replace(/./g, () => CHARS[Math.floor(Math.random() * CHARS.length)])}
               </span>
             </span>
+            {/* Native spaces for perfect line wrapping */}
             {wIdx < words.length - 1 && ' '}
           </span>
         );
