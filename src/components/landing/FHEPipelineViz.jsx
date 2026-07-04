@@ -58,11 +58,11 @@ export default function FHEPipelineViz() {
     let animId;
     let baseRotation = 0;
 
-    // Theme colors
+    // Theme colors for higher contrast
     const colors = [
-      { r: 45, g: 212, b: 191 }, // Mint
-      { r: 15, g: 110, b: 106 }, // Deep Teal
-      { r: 255, g: 255, b: 255 }, // White highlights
+      { r: 15, g: 110, b: 106 }, // Deep Teal (Darkest, most visible)
+      { r: 13, g: 148, b: 136 }, // Medium Teal
+      { r: 45, g: 212, b: 191 }, // Mint (Highlight)
     ];
 
     // Initialize DNA particles
@@ -79,17 +79,22 @@ export default function FHEPipelineViz() {
         // Noise for organic ribbon width
         const noiseRadius = (Math.random() - 0.5) * 40; 
         
+        const randColor = Math.random();
+        let colorObj = colors[0]; // 50% Deep Teal
+        if (randColor > 0.5 && randColor <= 0.85) colorObj = colors[1]; // 35% Medium Teal
+        else if (randColor > 0.85) colorObj = colors[2]; // 15% Mint Highlight
+
         particles.push({
           type: 'strand',
           t,
           strandOffset: strand,
           noiseRadius,
           speed: (Math.random() * 0.01) + 0.005, // Speed of traversal
-          size: Math.random() * 1.5 + 0.5,
-          colorObj: Math.random() > 0.1 ? colors[0] : colors[2], // Mostly mint, some white
+          size: Math.random() * 2.0 + 1.0, // Increased size for visibility
+          colorObj,
           isAttached: true,
           velocity: { x: 0, y: 0, z: 0 },
-          opacity: Math.random() * 0.7 + 0.3
+          opacity: Math.random() * 0.5 + 0.5 // Higher base opacity
         });
       }
 
@@ -105,11 +110,11 @@ export default function FHEPipelineViz() {
             speed: (Math.random() - 0.5) * 0.005, // Slight back and forth
             noiseY: (Math.random() - 0.5) * 15,
             noiseZ: (Math.random() - 0.5) * 15,
-            size: Math.random() * 1.5 + 0.2,
-            colorObj: colors[1], // Teal rungs
+            size: Math.random() * 1.5 + 0.5,
+            colorObj: colors[1], // Medium Teal rungs
             isAttached: true,
             velocity: { x: 0, y: 0, z: 0 },
-            opacity: Math.random() * 0.5 + 0.1
+            opacity: Math.random() * 0.5 + 0.3
           });
         }
       }
@@ -237,6 +242,14 @@ export default function FHEPipelineViz() {
           ctx.arc(screenX, screenY, projectedSize, 0, Math.PI * 2);
           ctx.fillStyle = colorStr;
           ctx.fill();
+
+          // Soft bloom for larger/closer particles (using fixed p.size so it doesn't flicker)
+          if (p.size > 2.2) {
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, projectedSize * 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${p.colorObj.r}, ${p.colorObj.g}, ${p.colorObj.b}, ${alpha * 0.2})`;
+            ctx.fill();
+          }
         } else if (p.hexText) {
           // Render floating hex text directly in canvas for disintegrated particles
           ctx.font = `${Math.max(6, projectedSize)}px var(--font-mono, monospace)`;
