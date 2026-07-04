@@ -66,15 +66,24 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
               <span key={cIdx} style={{ display: 'inline-grid' }}>
                 <span style={{ visibility: 'hidden', gridArea: '1/1' }}>{char}</span>
                 <span 
-                  className="scramble-char" 
-                  data-char={char} 
-                  data-index={currentIndex}
                   style={{ 
                     gridArea: '1/1', 
-                    placeSelf: 'center'
+                    placeSelf: 'center',
+                    width: 0,
+                    height: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'visible'
                   }}
                 >
-                  {CHARS[Math.floor(Math.random() * CHARS.length)]}
+                  <span 
+                    className="scramble-char" 
+                    data-char={char} 
+                    data-index={currentIndex}
+                  >
+                    {CHARS[Math.floor(Math.random() * CHARS.length)]}
+                  </span>
                 </span>
               </span>
             );
