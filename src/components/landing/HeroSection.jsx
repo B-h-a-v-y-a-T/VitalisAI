@@ -94,8 +94,9 @@ export default function HeroSection() {
             color: 'var(--text-secondary)',
             marginBottom: 40,
             maxWidth: 700, // Very wide
+            fontStyle: 'italic',
           }}>
-            Match patients to clinical trials using AI — while every record stays
+            Match patients to clinical trials using AI while every record stays
             fully encrypted. Built on Fhenix CoFHE for computation on ciphertext.
             Your data is never exposed. Not even to us.
           </p>
