@@ -87,7 +87,6 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
               <span 
                 className="scramble-original" 
                 style={{ 
-                  visibility: 'hidden', 
                   gridArea: '1/1', 
                   opacity: 0, 
                   transition: 'opacity 0.1s' 
@@ -110,7 +109,10 @@ export default function ScrambleText({ text, delay = 0, duration = 1500, classNa
                   whiteSpace: 'nowrap',
                   // Prevent the scrambled text from expanding the grid cell or overlapping
                   maxWidth: '100%',
-                  overflow: 'hidden'
+                  overflow: 'hidden',
+                  // Explicitly inherit for WebKit gradient support
+                  color: 'inherit',
+                  WebkitTextFillColor: 'inherit'
                 }}
               >
                 {/* Initial random state */}
