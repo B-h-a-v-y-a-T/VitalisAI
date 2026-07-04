@@ -13,10 +13,13 @@
     "vite": "^8.1.1"
   },
   "dependencies": {
+    "@cofhe/sdk": "^0.6.0",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/manrope": "^5.2.8",
+    "ethers": "^6.17.0",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.23.0",
+    "papaparse": "^5.5.4",
     "react-router-dom": "^7.18.1",
     "recharts": "^3.9.2"
   }

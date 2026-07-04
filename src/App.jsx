@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
+import { DatasetProvider } from './context/DatasetContext';
 import LandingPage from './pages/LandingPage';
 import AppLayout from './pages/AppLayout';
 import Dashboard from './pages/app/Dashboard';
@@ -12,12 +13,14 @@ import PlaintextVsEncrypted from './pages/app/PlaintextVsEncrypted';
 import AuditLogs from './pages/app/AuditLogs';
 import AccessControl from './pages/app/AccessControl';
 import SettingsPage from './pages/app/Settings';
+import RecruiterView from './pages/app/RecruiterView';
 
 export default function App() {
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <Routes>
+      <DatasetProvider>
+        <BrowserRouter>
+          <Routes>
           {/* Landing Page */}
           <Route path="/" element={<LandingPage />} />
 
@@ -32,10 +35,12 @@ export default function App() {
             <Route path="demo" element={<PlaintextVsEncrypted />} />
             <Route path="audit" element={<AuditLogs />} />
             <Route path="access" element={<AccessControl />} />
+            <Route path="recruiter" element={<RecruiterView />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
+      </DatasetProvider>
     </ThemeProvider>
   );
 }

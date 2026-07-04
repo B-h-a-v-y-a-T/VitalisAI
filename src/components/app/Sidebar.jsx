@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Upload, Database, Cpu, FlaskConical,
   ClipboardList, ScrollText, ShieldCheck, Settings,
-  ChevronLeft, ChevronRight, Shield,
+  ChevronLeft, ChevronRight, Shield, UserCheck,
 } from 'lucide-react';
 import ScrambleText from '../shared/ScrambleText';
 
@@ -18,6 +18,7 @@ const navItems = [
   { path: '/app/demo', icon: ShieldCheck, label: 'FHE Demo' },
   { path: '/app/audit', icon: ScrollText, label: 'Audit Logs' },
   { path: '/app/access', icon: ShieldCheck, label: 'Access Control' },
+  { path: '/app/recruiter', icon: UserCheck, label: 'Recruiter View' },
   { path: '/app/settings', icon: Settings, label: 'Settings' },
 ];
 

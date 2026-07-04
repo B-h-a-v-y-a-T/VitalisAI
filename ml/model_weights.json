@@ -1,0 +1,51 @@
+{
+  "model": "LogisticRegression",
+  "features": [
+    "age",
+    "sex",
+    "trestbps",
+    "chol",
+    "fbs",
+    "thalach"
+  ],
+  "scale_factor": 1000,
+  "accuracy": 0.7049,
+  "raw_coefficients": [
+    -0.006351,
+    -1.575064,
+    -0.015846,
+    -0.009272,
+    -0.113414,
+    0.04825
+  ],
+  "raw_intercept": -1.225471,
+  "scaled_coefficients": [
+    -6,
+    -1575,
+    -16,
+    -9,
+    -113,
+    48
+  ],
+  "scaled_intercept": -1225,
+  "positive_weights": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    48
+  ],
+  "negative_weights": [
+    6,
+    1575,
+    16,
+    9,
+    113,
+    0
+  ],
+  "positive_intercept": 0,
+  "negative_intercept": 1225,
+  "threshold": 1225,
+  "num_features": 6
+}

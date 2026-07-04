@@ -3,15 +3,49 @@ import { motion } from 'framer-motion';
 import { Database, Search, Filter, MoreHorizontal, Download, Trash2, Play } from 'lucide-react';
 import GlassCard from '../../components/shared/GlassCard';
 import StatusBadge from '../../components/shared/StatusBadge';
-import { datasets } from '../../data/mockData';
+import { useDatasets } from '../../context/DatasetContext';
 
 export default function DatasetRegistry() {
+  const { datasets } = useDatasets();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
   const filtered = datasets.filter(ds =>
     ds.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const downloadReport = (ds) => {
+    let rowsStr = '';
+    
+    if (ds.encryptedData && ds.headers) {
+      // Use real encrypted data from uploaded CSV
+      const headersStr = ds.headers.join(',');
+      const rows = ds.encryptedData.map(row => row.join(','));
+      rowsStr = [headersStr, ...rows].join('\n');
+    } else {
+      // Generate a simulated encrypted CSV report for mock datasets
+      const headers = ['id', 'age_encrypted', 'blood_pressure_encrypted', 'cholesterol_encrypted', 'condition_hash'];
+      const mockRows = [headers.join(',')];
+      for (let i = 0; i < 50; i++) {
+        mockRows.push([
+          i,
+          '0x' + Array.from({length: 40}, () => Math.floor(Math.random() * 16).toString(16)).join(''),
+          '0x' + Array.from({length: 40}, () => Math.floor(Math.random() * 16).toString(16)).join(''),
+          '0x' + Array.from({length: 40}, () => Math.floor(Math.random() * 16).toString(16)).join(''),
+          '0x' + Array.from({length: 40}, () => Math.floor(Math.random() * 16).toString(16)).join('')
+        ].join(','));
+      }
+      rowsStr = mockRows.join('\n');
+    }
+
+    const blob = new Blob([rowsStr], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${ds.name.toLowerCase().replace(/ /g, '_')}_encrypted_report.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
 
   return (
     <div>
@@ -108,8 +142,9 @@ export default function DatasetRegistry() {
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{ds.size}</td>
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
-                        <button className="btn-icon" title="Run Matching"><Play size={14} /></button>
-                        <button className="btn-icon" title="Download"><Download size={14} /></button>
+                        <button className="btn-icon" title="Download Encrypted Report" onClick={() => downloadReport(ds)}>
+                          <Download size={14} />
+                        </button>
                         <button className="btn-icon" title="Delete"><Trash2 size={14} /></button>
                       </div>
                     </td>
