@@ -34,6 +34,16 @@ contract VitalisMatching {
     mapping(uint256 => ebool) private matchResults;
     uint256 public patientCount;
 
+    // Cohort Feasibility Queries
+    struct FeasibilityQuery {
+        string description;
+        euint32 encryptedAggregateCount;
+        uint256 submissionsCount;
+        bool active;
+    }
+    mapping(uint256 => FeasibilityQuery) private feasibilityQueries;
+    uint256 public queryCount;
+
     // Feature labels for documentation
     string[6] public featureNames = ["age", "sex", "trestbps", "chol", "fbs", "thalach"];
 
@@ -41,6 +51,8 @@ contract VitalisMatching {
     event CriteriaUpdated(address indexed admin, uint32 threshold);
     event PatientEvaluated(uint256 indexed patientId, address indexed hospital);
     event MatchUnsealed(uint256 indexed patientId, address indexed requester);
+    event QueryCreated(uint256 indexed queryId, string description);
+    event FlagSubmitted(uint256 indexed queryId, address indexed hospital);
 
     // ─── Modifiers ───
     modifier onlyAdmin() {
@@ -201,5 +213,64 @@ contract VitalisMatching {
         uint32 _threshold
     ) {
         return (positiveWeights, negativeWeights, threshold);
+    }
+
+    // ─── Cohort Feasibility Functions ───
+
+    /**
+     * @notice Pharma admin creates a new cohort size estimation query
+     * @param _description Description of the cohort query (e.g. "Trial NCT0123: Age > 60 & Fasting Blood Sugar == 1")
+     */
+    function createFeasibilityQuery(string calldata _description) external onlyAdmin returns (uint256 queryId) {
+        queryId = queryCount;
+        feasibilityQueries[queryId].description = _description;
+        feasibilityQueries[queryId].encryptedAggregateCount = FHE.asEuint32(0);
+        feasibilityQueries[queryId].active = true;
+        queryCount++;
+        emit QueryCreated(queryId, _description);
+    }
+
+    /**
+     * @notice Hospital submits an encrypted flag (0 or 1) indicating if a single patient fits the criteria
+     * @param queryId The feasibility query ID
+     * @param encryptedFlag The encrypted boolean or uint32 (0 or 1) indicating eligibility
+     *
+     * The contract homomorphically sums these flags, updating the query's total matching patients count.
+     */
+    function submitFeasibilityFlag(uint256 queryId, inEuint32 calldata encryptedFlag) external onlyHospital {
+        require(queryId < queryCount, "VitalisMatching: invalid query ID");
+        FeasibilityQuery storage q = feasibilityQueries[queryId];
+        require(q.active, "VitalisMatching: query is not active");
+
+        euint32 flag = FHE.asEuint32(encryptedFlag);
+        q.encryptedAggregateCount = FHE.add(q.encryptedAggregateCount, flag);
+        q.submissionsCount++;
+
+        // Authorize admin (Pharma) and the contract to view the aggregated sum
+        FHE.allow(q.encryptedAggregateCount, admin);
+        FHE.allowThis(q.encryptedAggregateCount);
+
+        emit FlagSubmitted(queryId, msg.sender);
+    }
+
+    /**
+     * @notice Return the query status and aggregate data
+     */
+    function getFeasibilityQueryInfo(uint256 queryId) external view returns (
+        string memory description,
+        uint256 submissionsCount,
+        bool active
+    ) {
+        require(queryId < queryCount, "VitalisMatching: invalid query ID");
+        FeasibilityQuery storage q = feasibilityQueries[queryId];
+        return (q.description, q.submissionsCount, q.active);
+    }
+
+    /**
+     * @notice Pharma reads the encrypted cohort size for a feasibility query
+     */
+    function getFeasibilityCount(uint256 queryId) external view onlyAdmin returns (euint32) {
+        require(queryId < queryCount, "VitalisMatching: invalid query ID");
+        return feasibilityQueries[queryId].encryptedAggregateCount;
     }
 }

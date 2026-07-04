@@ -14,6 +14,7 @@ import AuditLogs from './pages/app/AuditLogs';
 import AccessControl from './pages/app/AccessControl';
 import SettingsPage from './pages/app/Settings';
 import RecruiterView from './pages/app/RecruiterView';
+import FeasibilityEstimator from './pages/app/FeasibilityEstimator';
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="audit" element={<AuditLogs />} />
             <Route path="access" element={<AccessControl />} />
             <Route path="recruiter" element={<RecruiterView />} />
+            <Route path="feasibility" element={<FeasibilityEstimator />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
