@@ -18,7 +18,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', marginBottom: '24px' }}>
-              <img src="/logo.jpeg" alt="Vitalis Logo" style={{ width: 42, height: 42, objectFit: 'contain' }} />
+              <img src="/logo.png" alt="Vitalis Logo" style={{ width: 42, height: 42, objectFit: 'contain' }} />
               <ScrambleText 
                 text="Vitalis AI"
                 delay={400}

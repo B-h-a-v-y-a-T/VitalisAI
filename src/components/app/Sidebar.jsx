@@ -50,7 +50,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         minHeight: 64,
       }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
-          <img src="/logo.jpeg" alt="Vitalis Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+          <img src="/logo.png" alt="Vitalis Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} />
           {!collapsed && (
             <ScrambleText 
               text="Vitalis AI"

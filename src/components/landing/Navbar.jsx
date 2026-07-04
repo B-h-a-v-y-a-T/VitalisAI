@@ -49,7 +49,7 @@ export default function Navbar() {
       }}>
         {/* Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
-          <img src="/logo.jpeg" alt="Vitalis Logo" style={{ width: 42, height: 42, objectFit: 'contain' }} />
+          <img src="/logo.png" alt="Vitalis Logo" style={{ width: 42, height: 42, objectFit: 'contain' }} />
           <ScrambleText 
             text="Vitalis AI"
             delay={200}
