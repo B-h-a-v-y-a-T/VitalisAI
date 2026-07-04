@@ -485,7 +485,9 @@ export default function FHEPipelineViz() {
           top: 0, left: 0,
           width: WIDTH, height: HEIGHT,
           pointerEvents: 'none',
-          zIndex: 1
+          zIndex: 1,
+          transform: 'rotate(-15deg) scale(1.15)',
+          transformOrigin: 'center center'
         }}
       />
 
