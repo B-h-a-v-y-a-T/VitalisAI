@@ -1,9 +1,9 @@
 // Base dataset structure
 const generateBase = () => [
   { id: 1, age: 63, sex: 1, trestbps: 145, chol: 233, fbs: 1, thalach: 150 },
-  { id: 2, age: 37, sex: 1, trestbps: 130, chol: 250, fbs: 0, thalach: 187 },
-  { id: 3, age: 41, sex: 0, trestbps: 130, chol: 204, fbs: 0, thalach: 172 },
-  { id: 4, age: 56, sex: 1, trestbps: 120, chol: 236, fbs: 0, thalach: 178 },
+  { id: 2, age: 24, sex: 1, trestbps: 120, chol: 180, fbs: 0, thalach: 187 },
+  { id: 3, age: 28, sex: 0, trestbps: 110, chol: 190, fbs: 0, thalach: 172 },
+  { id: 4, age: 31, sex: 1, trestbps: 115, chol: 200, fbs: 0, thalach: 178 },
   { id: 5, age: 57, sex: 0, trestbps: 120, chol: 354, fbs: 0, thalach: 163 },
   { id: 6, age: 57, sex: 1, trestbps: 140, chol: 192, fbs: 0, thalach: 148 },
   { id: 7, age: 56, sex: 0, trestbps: 140, chol: 294, fbs: 0, thalach: 153 },

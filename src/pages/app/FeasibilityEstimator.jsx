@@ -321,7 +321,7 @@ Query: "${text}"`
                 />
               </div>
               <GradientButton type="submit" disabled={!newDescription.trim() || isParsing || simulationState === 'submitting' || simulationState === 'summing'} icon={isParsing ? RefreshCw : Send}>
-                {isParsing ? 'Gemini is Parsing...' : 'Broadcast Query to Network'}
+                {isParsing ? 'Parsing Query...' : 'Broadcast Query to Network'}
               </GradientButton>
             </form>
           </GlassCard>
