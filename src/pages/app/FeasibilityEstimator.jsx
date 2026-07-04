@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Compass, HelpCircle, Lock, Unlock, Server, Shield, Plus, Send, RefreshCw, BarChart2, Eye, Award, CheckCircle } from 'lucide-react';
+import { Compass, HelpCircle, Lock, Unlock, Server, Shield, Plus, Send, RefreshCw, Code2, Database } from 'lucide-react';
 import GlassCard from '../../components/shared/GlassCard';
 import GradientButton from '../../components/shared/GradientButton';
 import StatusBadge from '../../components/shared/StatusBadge';
-import AnimatedCounter from '../../components/shared/AnimatedCounter';
+
+// The user-provided API Key (GitHub blocks hardcoded keys, so use environment variable)
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
 const HOSPITALS = [
   { name: 'Mayo Clinic Center', address: '0x32A1...9F0B', color: '#3b82f6', population: 1250 },
@@ -17,15 +19,17 @@ export default function FeasibilityEstimator() {
   const [queries, setQueries] = useState([
     {
       id: 0,
-      description: 'Trial NCT0451: Age >= 60 & Fasting Blood Sugar == 1 (Heart Screening Phase III)',
+      description: 'Patients 60 years or older with fasting blood sugar equal to 1',
+      parsedCriteria: { age: { operator: '>=', value: 60 }, fbs: { operator: '==', value: 1 } },
       submissionsCount: 4,
       totalPopulation: 4500,
-      status: 'decrypted', // active | summing | ready_to_decrypt | decrypted
+      status: 'decrypted',
       decryptedCount: 312,
     },
     {
       id: 1,
-      description: 'Trial NCT0992: Cholesterol > 240 & Max Heart Rate < 120 (Hypertension Feasibility)',
+      description: 'Patients with cholesterol above 240 and maximum heart rate below 120',
+      parsedCriteria: { chol: { operator: '>', value: 240 }, thalach: { operator: '<', value: 120 } },
       submissionsCount: 4,
       totalPopulation: 4500,
       status: 'ready_to_decrypt',
@@ -35,7 +39,7 @@ export default function FeasibilityEstimator() {
 
   const [newDescription, setNewDescription] = useState('');
   const [selectedQueryId, setSelectedQueryId] = useState(1);
-  const [walletConnected, setWalletConnected] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
   const [isPermitSigned, setIsPermitSigned] = useState(false);
   const [simulationState, setSimulationState] = useState('idle'); // idle | submitting | summing | complete
   const [hospitalSubmissions, setHospitalSubmissions] = useState(
@@ -46,13 +50,51 @@ export default function FeasibilityEstimator() {
 
   const selectedQuery = queries.find(q => q.id === selectedQueryId);
 
-  const handleCreateQuery = (e) => {
+  // Calls Gemini API to parse natural language into structured JSON criteria
+  const parseQueryWithGemini = async (text) => {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `You are a medical NLP parser. Convert this natural language query into a strict JSON object mapping feature names ('age', 'sex', 'trestbps', 'chol', 'fbs', 'thalach') to an operator ('<', '>', '<=', '>=', '==') and a numeric value. 
+Example query: "Patients older than 50 with cholesterol over 200"
+Example output: {"age": {"operator": ">", "value": 50}, "chol": {"operator": ">", "value": 200}}
+Output ONLY valid JSON without any markdown formatting or backticks. Omit unmentioned features.
+Query: "${text}"`
+            }]
+          }]
+        })
+      });
+      const data = await response.json();
+      let rawText = data.candidates[0].content.parts[0].text.trim();
+      // Clean markdown if Gemini accidentally included it
+      if (rawText.startsWith('```json')) rawText = rawText.substring(7);
+      if (rawText.startsWith('```')) rawText = rawText.substring(3);
+      if (rawText.endsWith('```')) rawText = rawText.substring(0, rawText.length - 3);
+      
+      return JSON.parse(rawText.trim());
+    } catch (e) {
+      console.error("Gemini Parsing Error", e);
+      // Fallback if parsing fails
+      return { age: { operator: ">", value: 0 } };
+    }
+  };
+
+  const handleCreateQuery = async (e) => {
     e.preventDefault();
     if (!newDescription.trim()) return;
+
+    setIsParsing(true);
+    const parsedJson = await parseQueryWithGemini(newDescription);
+    setIsParsing(false);
 
     const newQuery = {
       id: queries.length,
       description: newDescription,
+      parsedCriteria: parsedJson,
       submissionsCount: 0,
       totalPopulation: 4500,
       status: 'active',
@@ -68,6 +110,33 @@ export default function FeasibilityEstimator() {
     setHospitalSubmissions(HOSPITALS.map(h => ({ ...h, status: 'pending', flagCount: 0 })));
   };
 
+  // Helper to generate a realistic mock hospital patient
+  const generateRandomPatient = () => ({
+    age: 30 + Math.floor(Math.random() * 50),
+    sex: Math.random() > 0.5 ? 1 : 0,
+    trestbps: 90 + Math.floor(Math.random() * 90),
+    chol: 150 + Math.floor(Math.random() * 200),
+    fbs: Math.random() > 0.85 ? 1 : 0,
+    thalach: 80 + Math.floor(Math.random() * 120),
+  });
+
+  // Helper to evaluate a patient against the structured JSON criteria
+  const evaluatePatient = (patient, criteria) => {
+    if (!criteria || Object.keys(criteria).length === 0) return true;
+    for (const [key, cond] of Object.entries(criteria)) {
+      if (patient[key] === undefined) continue;
+      const { operator, value } = cond;
+      const pVal = Number(patient[key]);
+      const cVal = Number(value);
+      if (operator === '>' && !(pVal > cVal)) return false;
+      if (operator === '<' && !(pVal < cVal)) return false;
+      if (operator === '>=' && !(pVal >= cVal)) return false;
+      if (operator === '<=' && !(pVal <= cVal)) return false;
+      if (operator === '==' && !(pVal === cVal)) return false;
+    }
+    return true;
+  };
+
   const startSimulation = async () => {
     if (!selectedQuery) return;
     
@@ -79,15 +148,20 @@ export default function FeasibilityEstimator() {
       updatedSubmissions[i].status = 'encrypting';
       setHospitalSubmissions([...updatedSubmissions]);
       
-      // Simulate client-side FHE flag generation and encryption for a hospital's subset
-      await new Promise(r => setTimeout(r, 1200));
+      // Artificial delay for UI
+      await new Promise(r => setTimeout(r, 1000));
       
-      // Generate simulated matching flag count
-      // Mayo clinic (1250 pop) -> ~80 matches, Johns Hopkins (980 pop) -> ~60 matches, etc.
-      const simulatedMatches = Math.floor(HOSPITALS[i].population * (Math.random() * 0.08 + 0.04));
+      // Mathematically simulate realistic matching against the generated population
+      let matches = 0;
+      for (let p = 0; p < HOSPITALS[i].population; p++) {
+        const patient = generateRandomPatient();
+        if (evaluatePatient(patient, selectedQuery.parsedCriteria)) {
+          matches++;
+        }
+      }
       
       updatedSubmissions[i].status = 'submitted';
-      updatedSubmissions[i].flagCount = simulatedMatches;
+      updatedSubmissions[i].flagCount = matches;
       setHospitalSubmissions([...updatedSubmissions]);
     }
     
@@ -103,7 +177,7 @@ export default function FeasibilityEstimator() {
     setSumAnimationIndex(-1);
     setSimulationState('complete');
     
-    // Update query status to ready to decrypt
+    // Update query status
     setQueries(prev => prev.map(q => 
       q.id === selectedQueryId ? { ...q, status: 'ready_to_decrypt', submissionsCount: 4 } : q
     ));
@@ -111,20 +185,17 @@ export default function FeasibilityEstimator() {
 
   const handleDecryptCount = async () => {
     if (!isPermitSigned) {
-      // Prompt permit signature first
       setIsPermitSigned(true);
       return;
     }
 
-    // Simulate decrypting via permit unsealing
     setQueries(prev => prev.map(q => {
       if (q.id === selectedQueryId) {
-        // Calculate sum from submissions
         const sum = hospitalSubmissions.reduce((acc, h) => acc + h.flagCount, 0);
         return {
           ...q,
           status: 'decrypted',
-          decryptedCount: sum > 0 ? sum : 284
+          decryptedCount: sum
         };
       }
       return q;
@@ -138,7 +209,7 @@ export default function FeasibilityEstimator() {
           Cohort Feasibility Estimator
         </h1>
         <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>
-          Evaluate patient cohort sizes across multiple hospitals homomorphically without exposing individual hospital database details.
+          Evaluate patient cohort sizes across multiple hospitals homomorphically using Gemini NLP-to-Structured Query translation.
         </p>
       </motion.div>
 
@@ -172,19 +243,20 @@ export default function FeasibilityEstimator() {
             <form onSubmit={handleCreateQuery} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
                 <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
-                  Query Criteria Description
+                  Natural Language Query
                 </label>
                 <textarea
                   className="input"
                   rows={3}
-                  placeholder="e.g., Target: Trial NCT0291, Cohort Criteria: age >= 55 & chol > 200 & sex == 1"
+                  disabled={isParsing}
+                  placeholder="e.g., 'Find patients over 50 with cholesterol above 220'"
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
                   style={{ resize: 'none', fontSize: '0.8rem' }}
                 />
               </div>
-              <GradientButton type="submit" disabled={!newDescription.trim()} icon={Send}>
-                Broadcast Query to Network
+              <GradientButton type="submit" disabled={!newDescription.trim() || isParsing} icon={isParsing ? RefreshCw : Send}>
+                {isParsing ? 'Gemini is Parsing...' : 'Broadcast Query to Network'}
               </GradientButton>
             </form>
           </GlassCard>
@@ -199,7 +271,12 @@ export default function FeasibilityEstimator() {
               {queries.map((q) => (
                 <div
                   key={q.id}
-                  onClick={() => setSelectedQueryId(q.id)}
+                  onClick={() => {
+                    setSelectedQueryId(q.id);
+                    setSimulationState('idle');
+                    setHospitalSubmissions(HOSPITALS.map(h => ({ ...h, status: 'pending', flagCount: 0 })));
+                    setIsPermitSigned(false);
+                  }}
                   style={{
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-md)',
@@ -214,7 +291,7 @@ export default function FeasibilityEstimator() {
                     <StatusBadge status={q.status} />
                   </div>
                   <p style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8, lineHeight: 1.4 }}>
-                    {q.description}
+                    "{q.description}"
                   </p>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
                     <span>Sites Enrolled: {q.submissionsCount}/4</span>
@@ -234,9 +311,26 @@ export default function FeasibilityEstimator() {
             <h3 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: 8 }}>
               Query #{selectedQuery.id} Feasibility Map
             </h3>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', marginBottom: 24 }}>
-              {selectedQuery.description}
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', marginBottom: 16 }}>
+              "{selectedQuery.description}"
             </p>
+
+            {/* Structured JSON Display */}
+            <div style={{ 
+              marginBottom: 24, 
+              padding: 16, 
+              background: '#040b0e', 
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid rgba(255, 255, 255, 0.08)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <Code2 size={14} style={{ color: 'var(--text-secondary)' }} />
+                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Gemini Parsed Structure</span>
+              </div>
+              <pre style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--mint)', whiteSpace: 'pre-wrap' }}>
+                {JSON.stringify(selectedQuery.parsedCriteria, null, 2)}
+              </pre>
+            </div>
 
             {/* Simulated Hospital Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 32 }}>
@@ -269,7 +363,6 @@ export default function FeasibilityEstimator() {
                         <div style={{ fontSize: '0.82rem', fontWeight: 700 }}>{hospital.population}</div>
                       </div>
 
-                      {/* Status representation */}
                       {hospital.status === 'pending' ? (
                         <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>Waiting...</span>
                       ) : hospital.status === 'encrypting' ? (
@@ -327,9 +420,9 @@ export default function FeasibilityEstimator() {
               {simulationState === 'idle' && (
                 <div style={{ padding: '8px 0' }}>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 12 }}>
-                    Begin multi-hospital cohort query simulation.
+                    Begin multi-hospital cohort query simulation based on parsed logic.
                   </p>
-                  <GradientButton size="sm" onClick={startSimulation}>
+                  <GradientButton size="sm" onClick={startSimulation} icon={Database}>
                     Run Simulation Query
                   </GradientButton>
                 </div>
@@ -338,10 +431,10 @@ export default function FeasibilityEstimator() {
               {simulationState === 'submitting' && (
                 <div>
                   <p style={{ fontSize: '0.75rem', color: 'var(--mint)', marginBottom: 4, fontWeight: 600 }}>
-                    Hospitals preparing and encrypting cohort flags...
+                    Hospitals filtering local records and encrypting flags...
                   </p>
                   <div className="progress-bar" style={{ height: 6, maxWidth: 200, margin: '12px auto 0' }}>
-                    <div className="progress-bar-fill" style={{ width: `${(hospitalSubmissions.filter(h => h.status === 'submitted').length / 4) * 100}%` }} />
+                    <div className="progress-bar-fill" style={{ width: `${(hospitalSubmissions.filter(h => h.status === 'submitted').length / 4) * 100}%`, transition: 'width 0.3s ease' }} />
                   </div>
                 </div>
               )}
