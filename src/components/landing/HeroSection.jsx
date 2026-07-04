@@ -94,7 +94,7 @@ export default function HeroSection() {
 
           {/* CTAs */}
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 48 }}>
-            <Link to="/app">
+            <Link to="/login">
               <GradientButton size="lg" icon={ArrowRight}>
                 Launch Platform
               </GradientButton>

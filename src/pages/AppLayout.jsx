@@ -1,11 +1,24 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Sidebar from '../components/app/Sidebar';
 import TopBar from '../components/app/TopBar';
+import TwoFactorPrompt from '../components/app/TwoFactorPrompt';
+import { useAuth } from '../context/AuthContext';
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(true);
+  const { isAuthenticated, is2FAEnabled, is2FAVerified } = useAuth();
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Show 2FA prompt if 2FA is enabled but not yet verified
+  if (is2FAEnabled && !is2FAVerified) {
+    return <TwoFactorPrompt />;
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>

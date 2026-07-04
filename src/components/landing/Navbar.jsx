@@ -96,7 +96,7 @@ export default function Navbar() {
         {/* Right Section */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <ThemeToggle />
-          <Link to="/app" className="desktop-nav">
+          <Link to="/login" className="desktop-nav">
             <GradientButton size="sm">Launch App</GradientButton>
           </Link>
 
@@ -149,7 +149,7 @@ export default function Navbar() {
                   {link.label}
                 </a>
               ))}
-              <Link to="/app" style={{ display: 'block', marginTop: '16px' }}>
+              <Link to="/login" style={{ display: 'block', marginTop: '16px' }}>
                 <GradientButton size="md" style={{ width: '100%' }}>Launch App</GradientButton>
               </Link>
             </div>

@@ -39,6 +39,12 @@ export default function GradientButton({
       background: 'transparent',
       color: 'var(--text-secondary)',
     },
+    glow: {
+      background: 'var(--bg-elevated)',
+      color: 'var(--text-primary)',
+      border: '1px solid rgba(45, 212, 191, 0.3)',
+      boxShadow: '0 0 20px rgba(45, 212, 191, 0.15), inset 0 0 10px rgba(45, 212, 191, 0.05)',
+    },
   };
 
   return (
@@ -55,7 +61,7 @@ export default function GradientButton({
         borderRadius: '14px',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
-        border: 'none',
+        border: variant === 'glow' ? '1px solid rgba(45, 212, 191, 0.3)' : 'none',
         fontFamily: 'var(--font-primary)',
         letterSpacing: '-0.01em',
         transition: 'all 0.25s ease',
@@ -68,6 +74,8 @@ export default function GradientButton({
         y: -2,
         boxShadow: variant === 'primary'
           ? '0 8px 25px rgba(45, 212, 191, 0.4)'
+          : variant === 'glow'
+          ? '0 0 30px rgba(45, 212, 191, 0.3), inset 0 0 15px rgba(45, 212, 191, 0.1)'
           : '0 4px 15px rgba(0, 0, 0, 0.1)',
       } : {}}
       whileTap={!disabled ? { scale: 0.98 } : {}}

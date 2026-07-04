@@ -3,7 +3,9 @@ import { motion } from 'framer-motion';
 import { Settings as SettingsIcon, Palette, Wallet, Bell, Building2, Key, Shield, Check } from 'lucide-react';
 import GlassCard from '../../components/shared/GlassCard';
 import GradientButton from '../../components/shared/GradientButton';
+import Setup2FAModal from '../../components/app/Setup2FAModal';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 
 const tabs = [
   { id: 'theme', icon: Palette, label: 'Theme' },
@@ -17,6 +19,8 @@ const tabs = [
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('theme');
   const { theme, toggleTheme } = useTheme();
+  const { is2FAEnabled, enable2FA, disable2FA } = useAuth();
+  const [show2FAModal, setShow2FAModal] = useState(false);
 
   return (
     <div>
@@ -244,7 +248,7 @@ export default function SettingsPage() {
             <GlassCard padding="32px">
               <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 24 }}>Security Settings</h3>
               {[
-                { label: 'Two-Factor Authentication', desc: 'Add an extra layer of security', status: 'Enabled' },
+                { label: 'Two-Factor Authentication', desc: 'Add an extra layer of security with Google Authenticator', is2FA: true },
                 { label: 'Session Timeout', desc: 'Auto-logout after inactivity', status: '30 minutes' },
                 { label: 'IP Whitelisting', desc: 'Restrict access to specific IPs', status: 'Configured' },
                 { label: 'Audit Log Retention', desc: 'How long audit logs are kept', status: '365 days' },
@@ -260,10 +264,38 @@ export default function SettingsPage() {
                     <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{item.label}</div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>{item.desc}</div>
                   </div>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--mint)' }}>{item.status}</span>
+                  {item.is2FA ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: is2FAEnabled ? 'var(--success)' : 'var(--text-tertiary)' }}>
+                        {is2FAEnabled ? 'Enabled' : 'Disabled'}
+                      </span>
+                      <div
+                        onClick={() => {
+                          if (is2FAEnabled) { disable2FA(); } else { setShow2FAModal(true); }
+                        }}
+                        style={{
+                          width: 44, height: 24, borderRadius: 'var(--radius-full)',
+                          background: is2FAEnabled ? 'var(--mint)' : 'var(--bg-tertiary)',
+                          padding: 2, cursor: 'pointer', transition: 'background 0.3s',
+                        }}
+                      >
+                        <div style={{
+                          width: 20, height: 20, borderRadius: '50%', background: '#fff',
+                          transform: is2FAEnabled ? 'translateX(20px)' : 'translateX(0)',
+                          transition: 'transform 0.3s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                        }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--mint)' }}>{item.status}</span>
+                  )}
                 </div>
               ))}
             </GlassCard>
+          )}
+
+          {show2FAModal && (
+            <Setup2FAModal onClose={() => setShow2FAModal(false)} />
           )}
         </motion.div>
       </div>

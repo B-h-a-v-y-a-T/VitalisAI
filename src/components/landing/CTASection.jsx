@@ -58,7 +58,7 @@ export default function CTASection() {
             Start matching today with zero raw data exposure.
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <Link to="/app">
+            <Link to="/login">
               <GradientButton size="xl" icon={ArrowRight}>
                 Launch Platform
               </GradientButton>
